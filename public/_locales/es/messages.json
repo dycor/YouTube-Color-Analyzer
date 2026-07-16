@@ -1,0 +1,14 @@
+{
+  "extensionName": {
+    "message": "Analizador de color de YouTube"
+  },
+  "extensionShortName": {
+    "message": "Analizador"
+  },
+  "extensionDescription": {
+    "message": "Analiza el color visible de un vídeo de YouTube con Parade, Forma de onda y Vectorscopio."
+  },
+  "actionTitle": {
+    "message": "Abrir el analizador de color de YouTube"
+  }
+}

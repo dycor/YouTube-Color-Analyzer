@@ -1,0 +1,14 @@
+{
+  "extensionName": {
+    "message": "YouTube 色彩分析器"
+  },
+  "extensionShortName": {
+    "message": "色彩分析器"
+  },
+  "extensionDescription": {
+    "message": "使用分量圖、波形圖和向量示波器分析 YouTube 影片的可見色彩。"
+  },
+  "actionTitle": {
+    "message": "開啟 YouTube 色彩分析器"
+  }
+}

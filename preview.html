@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Color Analyzer — UI Preview</title>
+    <script>
+      (() => {
+        const xBins = 192
+        const levelBins = 256
+        const vectorSize = 256
+        const channelIntensity = new Uint8Array(4 * xBins * levelBins)
+        const vectorIntensity = new Uint8Array(vectorSize * vectorSize)
+
+        for (let channel = 0; channel < 4; channel += 1) {
+          for (let x = 0; x < xBins; x += 1) {
+            const wave = Math.sin(x / 18) * 17 + Math.sin(x / 43) * 9
+            const level = Math.round(44 + channel * 19 + wave + (x / xBins) * 36)
+
+            for (let spread = -5; spread <= 5; spread += 1) {
+              const bounded = Math.max(0, Math.min(255, level + spread))
+              const index = (channel * xBins + x) * levelBins + bounded
+              channelIntensity[index] = 245 - Math.abs(spread) * 32
+            }
+          }
+        }
+
+        for (let angle = 0; angle < 360; angle += 1) {
+          const radians = (angle * Math.PI) / 180
+          const radius = 33 + Math.sin(angle / 19) * 7
+          const x = Math.round(128 + Math.cos(radians) * radius)
+          const y = Math.round(128 + Math.sin(radians) * radius * 0.58)
+          vectorIntensity[y * vectorSize + x] = 185
+        }
+
+        const encode = (bytes) => {
+          let binary = ''
+          const chunkSize = 0x8000
+
+          for (let offset = 0; offset < bytes.length; offset += chunkSize) {
+            binary += String.fromCharCode(...bytes.subarray(offset, offset + chunkSize))
+          }
+
+          return btoa(binary)
+        }
+
+        const frame = {
+          frameId: 1,
+          capturedAt: Date.now(),
+          detailed: false,
+          sourceWidth: 640,
+          sourceHeight: 360,
+          xBins,
+          levelBins,
+          vectorSize,
+          sampleCount: 230400,
+          computeMs: 18.4,
+          channelIntensityBase64: encode(channelIntensity),
+          vectorIntensityBase64: encode(vectorIntensity),
+        }
+        const stored = {
+          panelSettings: {
+            activeScope: 'waveform',
+            paradeMode: 'yrgb',
+            waveformChannels: { y: false, r: true, g: true, b: true },
+            waveformColorized: true,
+            showSkinToneLine: true,
+          },
+        }
+
+        window.chrome = {
+          i18n: {
+            getUILanguage: () =>
+              new URLSearchParams(window.location.search).get('lang') ?? 'en-US',
+          },
+          runtime: {
+            id: 'ui-preview',
+            connect: () => ({
+              postMessage: () => undefined,
+              onMessage: { addListener: () => undefined },
+              onDisconnect: { addListener: () => undefined },
+            }),
+            onMessage: {
+              addListener: (listener) => {
+                setTimeout(() => {
+                  listener({
+                    type: 'session:state',
+                    target: 'sidepanel',
+                    state: {
+                      status: 'active',
+                      sessionId: 'preview-session',
+                      captionsVisible: false,
+                      hdrDetected: false,
+                    },
+                  })
+                  listener({
+                    type: 'analysis:frame',
+                    target: 'sidepanel',
+                    sessionId: 'preview-session',
+                    frame,
+                  })
+                }, 60)
+              },
+            },
+          },
+          storage: {
+            local: {
+              get: async () => stored,
+              set: async (value) => Object.assign(stored, value),
+            },
+            session: {
+              get: async () => ({
+                lastSessionState: {
+                  status: 'active',
+                  sessionId: 'preview-session',
+                  captionsVisible: false,
+                  hdrDetected: false,
+                },
+              }),
+            },
+          },
+        }
+      })()
+    </script>
+  </head>
+  <body>
+    <div id="app"></div>
+    <script type="module" src="/src/sidepanel/main.ts"></script>
+  </body>
+</html>

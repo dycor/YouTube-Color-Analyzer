@@ -1,0 +1,14 @@
+YouTube Color Analyzer
+Copyright (c) 2026 dycor
+
+This extension contains source code licensed under the Mozilla Public License
+2.0 (MPL-2.0).
+
+Source code: https://github.com/dycor/YouTube-Color-Analyzer
+License: https://github.com/dycor/YouTube-Color-Analyzer/blob/main/LICENSE
+
+The Mozilla Public License 2.0 does not grant rights in any contributor's
+trademarks, service marks, or logos.
+
+YouTube and Google are trademarks of Google LLC. This project is independent
+and is not affiliated with, endorsed by, or sponsored by Google or YouTube.
