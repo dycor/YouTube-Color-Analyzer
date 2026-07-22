@@ -1,6 +1,6 @@
 # Dossier de publication Chrome Web Store
 
-Ce dossier centralise les textes et contrôles nécessaires à la publication de YouTube Color Analyzer.
+Ce dossier centralise les textes et contrôles nécessaires à la publication de Color Analyzer for YouTube.
 
 ## Documents
 

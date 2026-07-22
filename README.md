@@ -1,4 +1,4 @@
-# YouTube Color Analyzer
+# Color Analyzer for YouTube
 
 [Français](./README.fr.md) | **English** | [中文](./README.zh-CN.md) | [Español](./README.es.md) | [Português](./README.pt-BR.md)
 

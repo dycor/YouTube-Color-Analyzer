@@ -1,6 +1,6 @@
 # Public GitHub Pages website
 
-This folder contains the dependency-free public website for YouTube Color Analyzer.
+This folder contains the dependency-free public website for Color Analyzer for YouTube.
 
 ## Public routes
 

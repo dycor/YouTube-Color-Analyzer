@@ -1,4 +1,4 @@
-# Privacy Policy — YouTube Color Analyzer
+# Privacy Policy — Color Analyzer for YouTube
 
 [Français](./PRIVACY.fr.md) | **English** | [中文](./PRIVACY.zh-CN.md) | [Español](./PRIVACY.es.md) | [Português](./PRIVACY.pt-BR.md)
 
@@ -11,7 +11,7 @@ Privacy contact: **[dyvyn.7@gmail.com](mailto:dyvyn.7@gmail.com)**
 
 ## 1. Purpose of the extension
 
-YouTube Color Analyzer is a Chrome extension that locally generates a Parade, Waveform, and Vectorscope from the visible image of a YouTube video. Its sole purpose is to observe and analyze color; it does not modify the video, its source file, or its rendering.
+Color Analyzer for YouTube is a Chrome extension that locally generates a Parade, Waveform, and Vectorscope from the visible image of a YouTube video. Its sole purpose is to observe and analyze color; it does not modify the video, its source file, or its rendering.
 
 ## 2. Summary
 
@@ -56,7 +56,7 @@ During the browser session, the extension may keep a random session identifier, 
 
 ## 4. Transmission, sharing, and sale
 
-YouTube Color Analyzer does not transmit user data to the publisher or any third party. Messages between the page script, offscreen document, Web Worker, service worker, and side panel remain internal to the extension on the device.
+Color Analyzer for YouTube does not transmit user data to the publisher or any third party. Messages between the page script, offscreen document, Web Worker, service worker, and side panel remain internal to the extension on the device.
 
 The extension:
 
@@ -107,4 +107,4 @@ For questions about this policy or the extension, contact: **[dyvyn.7@gmail.com]
 
 ## 11. Independence
 
-YouTube Color Analyzer is an independent project. It is not affiliated with, endorsed by, or sponsored by Google, YouTube, or Blackmagic Design. YouTube and DaVinci Resolve are trademarks of their respective owners.
+Color Analyzer for YouTube is an independent project. It is not affiliated with, endorsed by, or sponsored by Google, YouTube, or Blackmagic Design. YouTube and DaVinci Resolve are trademarks of their respective owners.

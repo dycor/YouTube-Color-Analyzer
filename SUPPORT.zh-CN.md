@@ -1,4 +1,4 @@
-# 支持 — YouTube 色彩分析器
+# 支持 — Color Analyzer for YouTube
 
 [Français](./SUPPORT.fr.md) | [English](./SUPPORT.md) | **中文** | [Español](./SUPPORT.es.md) | [Português](./SUPPORT.pt-BR.md)
 
@@ -68,4 +68,4 @@
 
 ## 独立性声明
 
-YouTube 色彩分析器是一个独立项目。它与 Google、YouTube 或 Blackmagic Design 均无隶属关系，也未获得这些公司的认可或赞助。
+Color Analyzer for YouTube 是一个独立项目。它与 Google、YouTube 或 Blackmagic Design 均无隶属关系，也未获得这些公司的认可或赞助。

@@ -4,7 +4,7 @@
 
 ## General information
 
-- **Name**: YouTube Color Analyzer
+- **Name**: Color Analyzer for YouTube
 - **Short summary**: Analyze YouTube video colors locally with YRGB/RGB Parade, Waveform, and Rec.709 Vectorscope.
 - **Language**: English
 - **Recommended category**: Productivity
@@ -20,7 +20,7 @@ Place this copy near the beginning of the description rather than hiding it in a
 
 ## Detailed description
 
-YouTube Color Analyzer displays color-analysis scopes in Chrome's side panel using the visible pixels of the currently playing video.
+Color Analyzer for YouTube displays color-analysis scopes in Chrome's side panel using the visible pixels of the currently playing video.
 
 It is designed for editors, colorists, and creators who want to study a reference video before recreating a similar look in their own project.
 

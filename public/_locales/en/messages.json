@@ -1,6 +1,6 @@
 {
   "extensionName": {
-    "message": "YouTube Color Analyzer"
+    "message": "Color Analyzer for YouTube"
   },
   "extensionShortName": {
     "message": "Color Scope"
@@ -9,6 +9,6 @@
     "message": "Analyze the visible color of a YouTube video with Parade, Waveform, and Vectorscope."
   },
   "actionTitle": {
-    "message": "Open YouTube Color Analyzer"
+    "message": "Open Color Analyzer for YouTube"
   }
 }

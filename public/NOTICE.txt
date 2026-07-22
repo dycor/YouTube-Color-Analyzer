@@ -1,4 +1,4 @@
-YouTube Color Analyzer
+Color Analyzer for YouTube
 Copyright (c) 2026 dycor
 
 This extension contains source code licensed under the Mozilla Public License

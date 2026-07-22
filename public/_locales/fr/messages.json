@@ -1,6 +1,6 @@
 {
   "extensionName": {
-    "message": "Analyseur colorimétrique YouTube"
+    "message": "Color Analyzer for YouTube"
   },
   "extensionShortName": {
     "message": "Analyseur"
@@ -9,6 +9,6 @@
     "message": "Analyse la colorimétrie visible d’une vidéo YouTube avec Parade, Waveform et Vecteurscope."
   },
   "actionTitle": {
-    "message": "Ouvrir l’analyseur colorimétrique YouTube"
+    "message": "Ouvrir Color Analyzer for YouTube"
   }
 }

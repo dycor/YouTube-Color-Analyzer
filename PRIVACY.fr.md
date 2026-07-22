@@ -1,4 +1,4 @@
-# Politique de confidentialité — YouTube Color Analyzer
+# Politique de confidentialité — Color Analyzer for YouTube
 
 **Français** | [English](./PRIVACY.md) | [中文](./PRIVACY.zh-CN.md) | [Español](./PRIVACY.es.md) | [Português](./PRIVACY.pt-BR.md)
 
@@ -11,7 +11,7 @@ Contact confidentialité : **[dyvyn.7@gmail.com](mailto:dyvyn.7@gmail.com)**
 
 ## 1. Objet de l’extension
 
-YouTube Color Analyzer est une extension Chrome qui génère localement une Parade, un Waveform et un Vecteurscope à partir de l’image visible d’une vidéo YouTube. Elle sert uniquement à observer et analyser la colorimétrie ; elle ne modifie ni la vidéo, ni son fichier source, ni son rendu.
+Color Analyzer for YouTube est une extension Chrome qui génère localement une Parade, un Waveform et un Vecteurscope à partir de l’image visible d’une vidéo YouTube. Elle sert uniquement à observer et analyser la colorimétrie ; elle ne modifie ni la vidéo, ni son fichier source, ni son rendu.
 
 ## 2. Résumé
 
@@ -56,7 +56,7 @@ Pendant la session du navigateur, l’extension peut conserver un identifiant al
 
 ## 4. Transmission, partage et vente
 
-YouTube Color Analyzer ne transmet aucune donnée utilisateur à l’éditeur ou à un tiers. Les échanges entre le script de la page, le document hors écran, le Web Worker, le service worker et le panneau latéral restent internes à l’extension sur l’appareil.
+Color Analyzer for YouTube ne transmet aucune donnée utilisateur à l’éditeur ou à un tiers. Les échanges entre le script de la page, le document hors écran, le Web Worker, le service worker et le panneau latéral restent internes à l’extension sur l’appareil.
 
 L’extension :
 
@@ -107,4 +107,4 @@ Pour toute question relative à cette politique ou au fonctionnement de l’exte
 
 ## 11. Indépendance
 
-YouTube Color Analyzer est un projet indépendant. Il n’est ni affilié, ni approuvé, ni sponsorisé par Google, YouTube ou Blackmagic Design. YouTube et DaVinci Resolve sont des marques de leurs propriétaires respectifs.
+Color Analyzer for YouTube est un projet indépendant. Il n’est ni affilié, ni approuvé, ni sponsorisé par Google, YouTube ou Blackmagic Design. YouTube et DaVinci Resolve sont des marques de leurs propriétaires respectifs.

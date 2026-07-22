@@ -18,7 +18,7 @@ const languages = {
     supportFile: "SUPPORT.md",
     nav: { home: "Overview", privacy: "Privacy", support: "Support" },
     common: {
-      product: "YouTube Color Analyzer",
+      product: "Color Analyzer for YouTube",
       publisher: "Publisher",
       developer: "Developer",
       contact: "Contact",
@@ -92,7 +92,7 @@ const languages = {
     supportFile: "SUPPORT.fr.md",
     nav: { home: "Aperçu", privacy: "Confidentialité", support: "Assistance" },
     common: {
-      product: "YouTube Color Analyzer",
+      product: "Color Analyzer for YouTube",
       publisher: "Éditeur",
       developer: "Développeur",
       contact: "Contact",
@@ -166,7 +166,7 @@ const languages = {
     supportFile: "SUPPORT.es.md",
     nav: { home: "Resumen", privacy: "Privacidad", support: "Soporte" },
     common: {
-      product: "YouTube Color Analyzer",
+      product: "Color Analyzer for YouTube",
       publisher: "Editor",
       developer: "Desarrollador",
       contact: "Contacto",
@@ -240,7 +240,7 @@ const languages = {
     supportFile: "SUPPORT.pt-BR.md",
     nav: { home: "Visão geral", privacy: "Privacidade", support: "Suporte" },
     common: {
-      product: "YouTube Color Analyzer",
+      product: "Color Analyzer for YouTube",
       publisher: "Publicador",
       developer: "Desenvolvedor",
       contact: "Contato",
@@ -314,7 +314,7 @@ const languages = {
     supportFile: "SUPPORT.zh-CN.md",
     nav: { home: "概览", privacy: "隐私", support: "支持" },
     common: {
-      product: "YouTube 色彩分析器",
+      product: "Color Analyzer for YouTube",
       publisher: "发布者",
       developer: "开发者",
       contact: "联系方式",
@@ -526,7 +526,7 @@ const header = (language, page) => `
   <header class="site-header">
     <a class="brand" href="${routeFor(language)}" aria-label="${escapeHtml(language.common.product)}">
       <img src="${basePath}/assets/icon-128.png" width="40" height="40" alt="">
-      <span><b>YOUTUBE</b><strong>COLOR ANALYZER</strong></span>
+      <span><b>COLOR ANALYZER</b><strong>FOR YOUTUBE</strong></span>
     </a>
     <nav class="primary-nav" aria-label="${escapeHtml(language.common.primaryNav)}">
       <a href="${routeFor(language)}"${page === "home" ? ' aria-current="page"' : ""}>${language.nav.home}</a>
@@ -538,7 +538,7 @@ const header = (language, page) => `
 const footer = (language, page) => `
   <footer class="site-footer">
     <div>
-      <p class="footer-brand">YouTube Color Analyzer</p>
+      <p class="footer-brand">Color Analyzer for YouTube</p>
       <p>${language.common.independent}</p>
     </div>
     <dl>
@@ -566,7 +566,7 @@ const layout = ({ language, page, title, description, body }) => {
     <meta property="og:title" content="${escapeHtml(title)}">
     <meta property="og:description" content="${escapeHtml(description)}">
     <meta property="og:url" content="${canonical}">
-    <meta property="og:site_name" content="YouTube Color Analyzer">
+    <meta property="og:site_name" content="Color Analyzer for YouTube">
     <meta name="twitter:card" content="summary">
     <link rel="canonical" href="${canonical}">
     ${alternateLinks(page)}
@@ -676,7 +676,7 @@ const renderHome = (language) => {
   return layout({
     language,
     page: "home",
-    title: `YouTube Color Analyzer — ${content.title}`,
+    title: `Color Analyzer for YouTube — ${content.title}`,
     description: content.meta,
     body,
   });
@@ -701,7 +701,7 @@ const renderDocument = async (language, page) => {
   return layout({
     language,
     page,
-    title: `${config.title} — YouTube Color Analyzer`,
+    title: `${config.title} — Color Analyzer for YouTube`,
     description: language.home.meta,
     body,
   });
@@ -731,7 +731,7 @@ for (const language of Object.values(languages)) {
 const notFound = layout({
   language: languages.en,
   page: "home",
-  title: "Page not found — YouTube Color Analyzer",
+  title: "Page not found — Color Analyzer for YouTube",
   description: languages.en.home.meta,
   body: `<main id="main" class="not-found"><p class="eyebrow"><span>404</span>PAGE NOT FOUND</p><h1>Signal lost.</h1><p>The requested page does not exist.</p><a class="button primary" href="${routeFor(languages.en)}">Return to overview</a></main>`,
 });

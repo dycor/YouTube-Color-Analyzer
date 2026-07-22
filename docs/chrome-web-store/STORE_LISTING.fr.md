@@ -4,7 +4,7 @@
 
 ## Informations générales
 
-- **Nom** : Analyseur colorimétrique YouTube
+- **Nom** : Color Analyzer for YouTube
 - **Résumé court** : Analysez localement les couleurs d’une vidéo YouTube avec Parade YRGB/RGB, Waveform et Vecteurscope Rec.709.
 - **Langue** : français
 - **Catégorie recommandée** : Productivité
@@ -20,7 +20,7 @@ Placer ce texte près du début de la description, sans le masquer dans une sect
 
 ## Description détaillée
 
-Analyseur colorimétrique YouTube affiche des instruments colorimétriques dans le panneau latéral de Chrome à partir des pixels visibles de la vidéo en cours de lecture.
+Color Analyzer for YouTube affiche des instruments colorimétriques dans le panneau latéral de Chrome à partir des pixels visibles de la vidéo en cours de lecture.
 
 Il s’adresse aux monteurs, coloristes et créateurs qui souhaitent étudier une vidéo de référence avant de reproduire une esthétique similaire dans leur propre projet.
 

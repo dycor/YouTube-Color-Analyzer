@@ -18,7 +18,7 @@ Date de préparation : 22 juillet 2026.
 - [ ] Choisir le compte Google éditeur définitif et activer la validation en deux étapes.
 - [ ] Régler les frais uniques du compte développeur.
 - [ ] Vérifier l’adresse e-mail du compte développeur.
-- [x] Retenir le nom public **Color Analyzer**, le développeur **dycor** et le contact **dyvyn.7@gmail.com** dans les documents.
+- [x] Retenir le nom public **Color Analyzer for YouTube**, le développeur **dycor** et le contact **dyvyn.7@gmail.com** dans les documents.
 - [ ] Déclarer correctement le statut trader ou non-trader.
 - [x] Remplacer tous les marqueurs de remplacement dans les cinq langues.
 

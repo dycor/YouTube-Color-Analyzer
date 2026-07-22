@@ -1,4 +1,4 @@
-# Suporte — YouTube Color Analyzer
+# Suporte — Color Analyzer for YouTube
 
 [Français](./SUPPORT.fr.md) | [English](./SUPPORT.md) | [中文](./SUPPORT.zh-CN.md) | [Español](./SUPPORT.es.md) | **Português**
 
@@ -68,4 +68,4 @@ Para fazer uma pergunta sobre dados ou relatar uma vulnerabilidade, envie um e-m
 
 ## Independência
 
-O YouTube Color Analyzer é um projeto independente. Ele não é afiliado, endossado nem patrocinado pelo Google, YouTube ou Blackmagic Design.
+Color Analyzer for YouTube é um projeto independente. Ele não é afiliado, endossado nem patrocinado pelo Google, YouTube ou Blackmagic Design.
