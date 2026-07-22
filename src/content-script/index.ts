@@ -1,13 +1,26 @@
 import type {
   PlaybackState,
+  PlayerObservationReadyMessage,
+  PlayerObservationState,
   PlayerMode,
   PlayerSnapshot,
   PlayerSnapshotMessage,
+  RuntimeMessage,
   VideoRect,
 } from '../shared/protocol'
 import { isExtensionContextInvalidated } from '../shared/runtime-errors'
 
 const SNAPSHOT_INTERVAL_MS = 250
+// Manifest content scripts are classic scripts, so importing a runtime value
+// shared with extension modules could make Rollup emit an unsupported ESM
+// import. Keep these two literals mirrored with shared/protocol.ts; the release
+// and privacy-consent tests verify both the values and the standalone bundle.
+const PRIVACY_CONSENT_KEY = 'privacyConsentVersion'
+const PRIVACY_CONSENT_VERSION = 1
+
+function hasCurrentPrivacyConsent(value: unknown): boolean {
+  return value === PRIVACY_CONSENT_VERSION
+}
 
 function getPlayerMode(player: HTMLElement | null): PlayerMode {
   if (document.pictureInPictureElement) {
@@ -108,8 +121,11 @@ function createSnapshot(): PlayerSnapshot {
   }
 }
 
-let lastLocation = location.href
 let disposed = false
+let observationActive = false
+let activeSessionId: string | null = null
+let observationGeneration = 0
+let lastLocation = ''
 let snapshotIntervalId: number | null = null
 
 function handlePageStateChange(): void {
@@ -122,6 +138,24 @@ function dispose(): void {
   }
 
   disposed = true
+
+  stopObservation()
+  chrome.storage.onChanged.removeListener(handleStorageChange)
+  chrome.runtime.onMessage.removeListener(handleRuntimeMessage)
+}
+
+function stopObservation(sessionId?: string): void {
+  if (sessionId !== undefined && sessionId !== activeSessionId) {
+    return
+  }
+
+  activeSessionId = null
+
+  if (!observationActive) {
+    return
+  }
+
+  observationActive = false
 
   if (snapshotIntervalId !== null) {
     window.clearInterval(snapshotIntervalId)
@@ -137,13 +171,131 @@ function dispose(): void {
   window.removeEventListener('resize', handlePageStateChange)
 }
 
-async function publishSnapshot(): Promise<void> {
+function startObservation(sessionId: string): void {
   if (disposed) {
+    return
+  }
+
+  activeSessionId = sessionId
+
+  if (observationActive) {
+    void publishSnapshot()
+    return
+  }
+
+  observationActive = true
+  lastLocation = location.href
+  snapshotIntervalId = window.setInterval(() => {
+    if (location.href !== lastLocation) {
+      lastLocation = location.href
+    }
+
+    void publishSnapshot()
+  }, SNAPSHOT_INTERVAL_MS)
+
+  document.addEventListener('visibilitychange', handlePageStateChange)
+  document.addEventListener('fullscreenchange', handlePageStateChange)
+  document.addEventListener('enterpictureinpicture', handlePageStateChange, true)
+  document.addEventListener('leavepictureinpicture', handlePageStateChange, true)
+  document.addEventListener('loadedmetadata', handlePageStateChange, true)
+  document.addEventListener('resize', handlePageStateChange, true)
+  window.addEventListener('resize', handlePageStateChange)
+
+  void publishSnapshot()
+}
+
+function handleStorageChange(
+  changes: Record<string, chrome.storage.StorageChange>,
+  areaName: string,
+): void {
+  if (areaName !== 'local' || !(PRIVACY_CONSENT_KEY in changes)) {
+    return
+  }
+
+  if (!hasCurrentPrivacyConsent(changes[PRIVACY_CONSENT_KEY]?.newValue)) {
+    observationGeneration += 1
+    stopObservation()
+    return
+  }
+
+  void requestObservationState()
+}
+
+async function startObservationIfConsented(
+  sessionId: string,
+  generation: number,
+): Promise<void> {
+  try {
+    const stored = await chrome.storage.local.get(PRIVACY_CONSENT_KEY)
+
+    if (
+      generation === observationGeneration &&
+      hasCurrentPrivacyConsent(stored[PRIVACY_CONSENT_KEY])
+    ) {
+      startObservation(sessionId)
+    }
+  } catch (error) {
+    if (isExtensionContextInvalidated(error)) {
+      dispose()
+    }
+  }
+}
+
+function handleRuntimeMessage(message: RuntimeMessage): void {
+  if (message.type === 'player:observation:start') {
+    void requestObservationState(message.sessionId)
+  } else if (message.type === 'player:observation:stop') {
+    observationGeneration += 1
+    stopObservation(message.sessionId)
+  }
+}
+
+async function requestObservationState(expectedSessionId?: string): Promise<void> {
+  if (disposed) {
+    return
+  }
+
+  const generation = observationGeneration
+  const message: PlayerObservationReadyMessage = {
+    type: 'player:observation:ready',
+  }
+
+  try {
+    const state = (await chrome.runtime.sendMessage(message)) as
+      | PlayerObservationState
+      | undefined
+
+    if (generation !== observationGeneration) {
+      return
+    }
+
+    if (
+      typeof state?.sessionId === 'string' &&
+      (expectedSessionId === undefined || state.sessionId === expectedSessionId)
+    ) {
+      await startObservationIfConsented(state.sessionId, generation)
+    } else if (expectedSessionId === undefined) {
+      stopObservation()
+    } else {
+      stopObservation(expectedSessionId)
+    }
+  } catch (error) {
+    if (isExtensionContextInvalidated(error)) {
+      dispose()
+    }
+  }
+}
+
+async function publishSnapshot(): Promise<void> {
+  const sessionId = activeSessionId
+
+  if (disposed || !observationActive || sessionId === null) {
     return
   }
 
   const message: PlayerSnapshotMessage = {
     type: 'player:snapshot',
+    sessionId,
     snapshot: createSnapshot(),
   }
 
@@ -156,20 +308,18 @@ async function publishSnapshot(): Promise<void> {
   }
 }
 
-snapshotIntervalId = window.setInterval(() => {
-  if (location.href !== lastLocation) {
-    lastLocation = location.href
-  }
+chrome.storage.onChanged.addListener(handleStorageChange)
+chrome.runtime.onMessage.addListener(handleRuntimeMessage)
 
-  void publishSnapshot()
-}, SNAPSHOT_INTERVAL_MS)
-
-document.addEventListener('visibilitychange', handlePageStateChange)
-document.addEventListener('fullscreenchange', handlePageStateChange)
-document.addEventListener('enterpictureinpicture', handlePageStateChange, true)
-document.addEventListener('leavepictureinpicture', handlePageStateChange, true)
-document.addEventListener('loadedmetadata', handlePageStateChange, true)
-document.addEventListener('resize', handlePageStateChange, true)
-window.addEventListener('resize', handlePageStateChange)
-
-void publishSnapshot()
+void chrome.storage.local
+  .get(PRIVACY_CONSENT_KEY)
+  .then((stored) => {
+    if (hasCurrentPrivacyConsent(stored[PRIVACY_CONSENT_KEY])) {
+      void requestObservationState()
+    }
+  })
+  .catch((error: unknown) => {
+    if (isExtensionContextInvalidated(error)) {
+      dispose()
+    }
+  })

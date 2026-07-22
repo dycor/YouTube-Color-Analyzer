@@ -5,9 +5,9 @@
 ## Obtener ayuda
 
 - Correo electrónico de soporte: **[dyvyn.7@gmail.com](mailto:dyvyn.7@gmail.com)**
-- Seguimiento de problemas: **[URL PÚBLICA DEL SEGUIMIENTO DE PROBLEMAS PENDIENTE]**
+- Seguimiento de problemas: **[GitHub Issues](https://github.com/dycor/YouTube-Color-Analyzer/issues)**
 - Política de privacidad: [PRIVACY.es.md](./PRIVACY.es.md)
-- Plazo de respuesta orientativo: **[PLAZO PENDIENTE, POR EJEMPLO 5 DÍAS LABORABLES]**
+- Plazo de respuesta orientativo: **5 días laborables**
 
 No envíes capturas de pantalla que contengan información personal, una cuenta privada o contenido confidencial. La extensión nunca necesita tu contraseña de YouTube o Google.
 

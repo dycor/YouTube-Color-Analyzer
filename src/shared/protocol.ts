@@ -2,6 +2,13 @@ export type ScopeKind = 'parade' | 'waveform' | 'vectorscope'
 export type ParadeMode = 'yrgb' | 'rgb'
 export type Channel = 'y' | 'r' | 'g' | 'b'
 
+export const PRIVACY_CONSENT_KEY = 'privacyConsentVersion'
+export const PRIVACY_CONSENT_VERSION = 1
+
+export function hasCurrentPrivacyConsent(value: unknown): boolean {
+  return value === PRIVACY_CONSENT_VERSION
+}
+
 export const CHANNELS: readonly Channel[] = ['y', 'r', 'g', 'b']
 
 export interface PanelSettings {
@@ -91,7 +98,26 @@ export interface PanelFrameRequestMessage {
 
 export interface PlayerSnapshotMessage {
   type: 'player:snapshot'
+  sessionId: string
   snapshot: PlayerSnapshot
+}
+
+export interface PlayerObservationStartMessage {
+  type: 'player:observation:start'
+  sessionId: string
+}
+
+export interface PlayerObservationStopMessage {
+  type: 'player:observation:stop'
+  sessionId: string
+}
+
+export interface PlayerObservationReadyMessage {
+  type: 'player:observation:ready'
+}
+
+export interface PlayerObservationState {
+  sessionId: string | null
 }
 
 export type SessionStopReason =
@@ -173,6 +199,9 @@ export type RuntimeMessage =
   | CaptureEndedMessage
   | PanelFrameRequestMessage
   | PlayerSnapshotMessage
+  | PlayerObservationStartMessage
+  | PlayerObservationStopMessage
+  | PlayerObservationReadyMessage
   | AnalysisFrameMessage
   | SessionStateMessage
 
@@ -193,4 +222,8 @@ export interface AnalyzeFrameResponse {
   frame: EncodedScopeFrame
 }
 
-export type PanelPortMessage = { type: 'panel:ready' } | { type: 'panel:stop' }
+export type PanelPortMessage =
+  | { type: 'panel:ready' }
+  | { type: 'panel:stop' }
+  | { type: 'panel:accept-and-start' }
+  | { type: 'panel:cancel-consent' }

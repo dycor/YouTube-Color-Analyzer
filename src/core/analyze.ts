@@ -5,7 +5,6 @@ import {
   VECTOR_SIZE,
 } from '../shared/constants'
 import type { ScopeFrame } from '../shared/protocol'
-import { byteToUnit, rec709Luma, rgbToVectorscope, unitToByte, vectorPointToBin } from './color'
 
 export interface AnalyzePixelsInput {
   frameId: number
@@ -16,13 +15,16 @@ export interface AnalyzePixelsInput {
   rgba: Uint8ClampedArray
 }
 
-function channelIndex(
-  channel: number,
-  x: number,
-  level: number,
-  xBins: number,
-): number {
-  return (channel * xBins + x) * LEVEL_BINS + level
+const BYTE_TO_UNIT = Float64Array.from(
+  { length: LEVEL_BINS },
+  (_, value) => value / (LEVEL_BINS - 1),
+)
+const VECTOR_MAX_INDEX = VECTOR_SIZE - 1
+
+function clampVectorCoordinate(value: number): number {
+  return Math.round(
+    (value < 0 ? 0 : value > 1 ? 1 : value) * VECTOR_MAX_INDEX,
+  )
 }
 
 export function analyzePixels(input: AnalyzePixelsInput): ScopeFrame {
@@ -43,46 +45,46 @@ export function analyzePixels(input: AnalyzePixelsInput): ScopeFrame {
   )
   const channelDensity = new Uint32Array(4 * xBins * LEVEL_BINS)
   const vectorDensity = new Uint32Array(VECTOR_SIZE * VECTOR_SIZE)
+  const xBinByColumn = new Uint16Array(width)
+  const channelStride = xBins * LEVEL_BINS
+  const redOffset = channelStride
+  const greenOffset = channelStride * 2
+  const blueOffset = channelStride * 3
   let sampleCount = 0
 
-  for (let y = 0; y < height; y += 1) {
-    for (let x = 0; x < width; x += 1) {
-      const pixelIndex = (y * width + x) * 4
-      const rByte = rgba[pixelIndex]
-      const gByte = rgba[pixelIndex + 1]
-      const bByte = rgba[pixelIndex + 2]
-      const alphaByte = rgba[pixelIndex + 3]
+  for (let x = 0; x < width; x += 1) {
+    xBinByColumn[x] = Math.floor((x * xBins) / width)
+  }
 
-      if (
-        rByte === undefined ||
-        gByte === undefined ||
-        bByte === undefined ||
-        alphaByte === undefined ||
-        alphaByte === 0
-      ) {
+  let pixelIndex = 0
+
+  for (let y = 0; y < height; y += 1) {
+    for (let x = 0; x < width; x += 1, pixelIndex += 4) {
+      const rByte = rgba[pixelIndex]!
+      const gByte = rgba[pixelIndex + 1]!
+      const bByte = rgba[pixelIndex + 2]!
+
+      if (rgba[pixelIndex + 3] === 0) {
         continue
       }
 
       sampleCount += 1
 
-      const r = byteToUnit(rByte)
-      const g = byteToUnit(gByte)
-      const b = byteToUnit(bByte)
-      const lumaByte = unitToByte(rec709Luma(r, g, b))
-      const xBin = Math.min(xBins - 1, Math.floor((x * xBins) / width))
+      const r = BYTE_TO_UNIT[rByte]!
+      const g = BYTE_TO_UNIT[gByte]!
+      const b = BYTE_TO_UNIT[bByte]!
+      const luma = 0.2126 * r + 0.7152 * g + 0.0722 * b
+      const lumaByte = Math.round(luma * (LEVEL_BINS - 1))
+      const columnOffset = xBinByColumn[x]! * LEVEL_BINS
 
-      const yIndex = channelIndex(0, xBin, lumaByte, xBins)
-      const rIndex = channelIndex(1, xBin, rByte, xBins)
-      const gIndex = channelIndex(2, xBin, gByte, xBins)
-      const bIndex = channelIndex(3, xBin, bByte, xBins)
-      channelDensity[yIndex] = (channelDensity[yIndex] ?? 0) + 1
-      channelDensity[rIndex] = (channelDensity[rIndex] ?? 0) + 1
-      channelDensity[gIndex] = (channelDensity[gIndex] ?? 0) + 1
-      channelDensity[bIndex] = (channelDensity[bIndex] ?? 0) + 1
+      channelDensity[columnOffset + lumaByte]! += 1
+      channelDensity[redOffset + columnOffset + rByte]! += 1
+      channelDensity[greenOffset + columnOffset + gByte]! += 1
+      channelDensity[blueOffset + columnOffset + bByte]! += 1
 
-      const vectorBin = vectorPointToBin(rgbToVectorscope(r, g, b), VECTOR_SIZE)
-      const vectorIndex = vectorBin.y * VECTOR_SIZE + vectorBin.x
-      vectorDensity[vectorIndex] = (vectorDensity[vectorIndex] ?? 0) + 1
+      const vectorX = clampVectorCoordinate((r - luma) / 1.5748 + 0.5)
+      const vectorY = clampVectorCoordinate(0.5 - (b - luma) / 1.8556)
+      vectorDensity[vectorY * VECTOR_SIZE + vectorX]! += 1
     }
   }
 

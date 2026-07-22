@@ -3,9 +3,10 @@
 **Français** | [English](./PRIVACY.md) | [中文](./PRIVACY.zh-CN.md) | [Español](./PRIVACY.es.md) | [Português](./PRIVACY.pt-BR.md)
 
 Date d’entrée en vigueur : 17 juillet 2026  
-Dernière mise à jour : 17 juillet 2026
+Dernière mise à jour : 22 juillet 2026
 
-Éditeur : **[NOM DE L’ÉDITEUR À COMPLÉTER]**  
+Éditeur : **Color Analyzer**
+
 Contact confidentialité : **[dyvyn.7@gmail.com](mailto:dyvyn.7@gmail.com)**
 
 ## 1. Objet de l’extension
@@ -14,7 +15,8 @@ YouTube Color Analyzer est une extension Chrome qui génère localement une Para
 
 ## 2. Résumé
 
-- l’analyse commence uniquement après une action explicite de l’utilisateur sur l’icône de l’extension ;
+- l’analyse commence uniquement après une action explicite de l’utilisateur sur l’icône de l’extension et, lors de la première utilisation ou après une mise à jour de la divulgation, l’acceptation de la divulgation relative aux données affichée dans l’extension ;
+- le contexte de la page et l’état du lecteur sont observés uniquement pendant une session d’analyse active, et cette observation s’arrête avec la session ;
 - les pixels visibles de la vidéo sont traités localement sur l’appareil ;
 - l’audio n’est pas capturé ;
 - aucune image de la vidéo n’est enregistrée sur le disque ou envoyée à l’éditeur ;
@@ -29,11 +31,11 @@ Pendant une session d’analyse active, l’extension capture temporairement le 
 
 Le rendu capturé peut inclure les éléments visibles superposés à la vidéo, notamment des sous-titres ou des commandes du lecteur. L’extension signale certains de ces cas, car ils peuvent influencer la mesure.
 
-Les tableaux de pixels bruts sont conservés en mémoire de travail le temps nécessaire au calcul, puis leurs références sont libérées. Le canvas local peut conserver la dernière image recadrée en mémoire jusqu’à son remplacement par une autre image ou la destruction du document hors écran. Aucune image n’est écrite dans un stockage persistant, ajoutée à un historique ou transmise sur Internet.
+Les tableaux de pixels bruts sont conservés en mémoire de travail le temps nécessaire au calcul, puis leurs références sont libérées. Pendant une session active, le canvas local peut conserver la dernière image recadrée en mémoire jusqu’à son remplacement par une autre image. À l’arrêt de la capture, le canvas est réinitialisé à 1 × 1 pixel et la source vidéo est libérée. Aucune image n’est écrite dans un stockage persistant, ajoutée à un historique ou transmise sur Internet.
 
 ### 3.2 Contexte de la page et état du lecteur
 
-Un script local de l’extension est présent sur les pages `youtube.com`. Il observe périodiquement le contexte de la page et l’état du lecteur, y compris lorsqu’aucune capture n’est active. En l’absence de session d’analyse, ces messages sont ignorés et ne sont pas enregistrés. Pour localiser correctement la vidéo, gérer les navigations internes de YouTube et synchroniser les mesures, l’extension traite temporairement :
+Un script local de l’extension est présent sur les pages `youtube.com`, mais il reste inactif jusqu’à ce que l’utilisateur ait accepté la divulgation relative aux données en vigueur et démarre explicitement une analyse. Uniquement pendant une session d’analyse active, il observe périodiquement le contexte de la page et l’état du lecteur. Cette observation s’arrête immédiatement lorsque l’utilisateur choisit « Arrêter », navigue vers une page non prise en charge, ferme l’onglet ou que la capture prend fin. La fermeture du panneau latéral l’arrête après un bref délai technique qui permet de tolérer un rechargement du panneau. Le contexte du lecteur n’est pas observé entre deux sessions d’analyse. Pour localiser correctement la vidéo, détecter les navigations internes de YouTube et synchroniser les mesures pendant la session active, l’extension traite temporairement :
 
 - l’adresse de la page YouTube courante et l’identifiant de la vidéo ;
 - le temps de lecture et l’état lecture, pause ou recherche ;
@@ -68,12 +70,12 @@ YouTube et Google peuvent traiter des données indépendamment lorsque l’utili
 
 ## 5. Conservation et suppression
 
-- **Pixels vidéo** : mémoire de travail locale ; les tableaux bruts sont libérés après calcul, tandis que le dernier recadrage peut rester dans le canvas jusqu’à son remplacement ou la destruction du document hors écran.
-- **Contexte du lecteur** : mémoire temporaire, remplacée continuellement. L’observation locale continue tant que la page YouTube reste chargée, mais les messages sont ignorés et non enregistrés lorsqu’aucune analyse n’est active.
+- **Pixels vidéo** : mémoire de travail locale ; les tableaux bruts sont libérés après calcul. Le dernier recadrage peut rester dans le canvas uniquement pendant la session active ; à l’arrêt, le canvas est réinitialisé à 1 × 1 pixel et la source vidéo est libérée.
+- **Contexte du lecteur** : mémoire temporaire, remplacée continuellement uniquement pendant une session d’analyse active. L’observation ne commence pas avant le consentement et s’arrête immédiatement à la fin de la session.
 - **État de session** : l’identifiant de la capture active est retiré à l’arrêt ; le dernier statut peut rester dans le stockage de session Chrome jusqu’à la fin de la session du navigateur.
 - **Préférences d’affichage et version du consentement** : stockage local Chrome, conservées jusqu’à leur modification, leur effacement ou la désinstallation.
 
-L’utilisateur peut interrompre la capture et l’analyse des pixels avec le bouton « Arrêter », en fermant le panneau, en quittant la vidéo ou en fermant l’onglet. La fermeture du panneau applique un bref délai technique afin de tolérer son rechargement. Sur une page YouTube toujours chargée, l’observation locale du contexte du lecteur peut continuer, mais ses messages sont ignorés tant qu’aucune analyse n’est active. L’utilisateur peut supprimer les préférences enregistrées en effaçant les données de l’extension dans Chrome ou en désinstallant l’extension.
+« Arrêter », la navigation vers une page non prise en charge, la fermeture de l’onglet ou la fin de la capture arrêtent immédiatement la capture, l’analyse des pixels et l’observation du contexte du lecteur. La fermeture du panneau latéral déclenche le même nettoyage après un bref délai technique qui permet de tolérer un rechargement du panneau. Ce nettoyage réinitialise le canvas d’analyse à 1 × 1 pixel et libère la source vidéo. Aucune observation du contexte du lecteur n’a lieu avant consentement ni après la fin de la session d’analyse active. L’utilisateur peut supprimer les préférences enregistrées en effaçant les données de l’extension dans Chrome ou en désinstallant l’extension.
 
 L’éditeur ne possède aucune copie distante de ces informations et ne peut donc ni les consulter ni les supprimer à distance.
 
@@ -81,12 +83,11 @@ L’éditeur ne possède aucune copie distante de ces informations et ne peut do
 
 L’extension utilise uniquement les permissions nécessaires à sa finalité :
 
-- **activeTab** : vérifier, après l’action de l’utilisateur, que l’onglet actif est une vidéo YouTube compatible ;
 - **tabCapture** : capturer temporairement le rendu visible de l’onglet sélectionné, sans audio ;
 - **offscreen** : recevoir et analyser localement le flux capturé dans un document Chrome hors écran ;
 - **sidePanel** : afficher les instruments et leurs réglages dans le panneau latéral ;
 - **storage** : conserver les préférences locales, la version du consentement et l’état technique de la session ;
-- **accès à `https://www.youtube.com/*`** : détecter le lecteur, sa géométrie et son état sur YouTube. La capture elle-même ne démarre que sur une page `/watch` compatible après l’action de l’utilisateur.
+- **accès à `https://www.youtube.com/*`** : uniquement pendant une session d’analyse active, détecter le lecteur YouTube, sa géométrie, son état et la navigation hors de la vidéo sélectionnée. La capture ne démarre que sur une page `/watch` compatible après consentement et une action de l’utilisateur.
 
 ## 7. Sécurité
 

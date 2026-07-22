@@ -5,6 +5,8 @@ import { chromium, expect, test, type BrowserContext } from '@playwright/test'
 let context: BrowserContext
 let extensionId: string
 
+test.describe.configure({ mode: 'serial' })
+
 test.beforeAll(async () => {
   const extensionPath = resolve(import.meta.dirname, '../dist')
 
@@ -28,6 +30,214 @@ test.beforeAll(async () => {
 
 test.afterAll(async () => {
   await context.close()
+})
+
+async function getServiceWorker() {
+  const existing = context.serviceWorkers()[0]
+
+  if (existing) {
+    return existing
+  }
+
+  const workerStarted = context.waitForEvent('serviceworker')
+  const wakePage = await context.newPage()
+  await wakePage.goto(`chrome-extension://${extensionId}/sidepanel.html`)
+  const worker = await workerStarted
+  await wakePage.close()
+  return worker
+}
+
+test('requires explicit consent and stores only its current version', async () => {
+  const serviceWorker = await getServiceWorker()
+  await serviceWorker.evaluate(async () => {
+    await chrome.storage.local.remove('privacyConsentVersion')
+  })
+
+  const page = await context.newPage()
+  await page.goto(`chrome-extension://${extensionId}/sidepanel.html`)
+
+  const dialog = page.getByRole('dialog', { name: 'Local video analysis' })
+  await expect(dialog).toBeVisible()
+  await expect(
+    dialog.getByRole('link', { name: 'Privacy Policy' }),
+  ).toHaveAttribute(
+    'href',
+    'https://dycor.github.io/YouTube-Color-Analyzer/privacy/',
+  )
+
+  await dialog.getByRole('button', { name: 'Cancel' }).click()
+  await expect(
+    dialog.getByText('Analysis was not started. Your choice has not been stored.'),
+  ).toBeVisible()
+  expect(
+    await serviceWorker.evaluate(async () =>
+      chrome.storage.local.get('privacyConsentVersion'),
+    ),
+  ).toEqual({})
+
+  await dialog.getByRole('button', { name: 'Accept and start analysis' }).click()
+  await expect(dialog).toBeHidden()
+  expect(
+    await serviceWorker.evaluate(async () =>
+      chrome.storage.local.get('privacyConsentVersion'),
+    ),
+  ).toEqual({ privacyConsentVersion: 1 })
+  await expect(page.getByText('V1.0.0')).toBeVisible()
+  await expect(
+    page.locator('footer').getByRole('link', { name: 'Privacy Policy' }),
+  ).toHaveAttribute(
+    'href',
+    'https://dycor.github.io/YouTube-Color-Analyzer/privacy/',
+  )
+})
+
+test('observes YouTube only while an analysis session is active', async () => {
+  const serviceWorker = await getServiceWorker()
+  const youtubeUrl = 'https://www.youtube.com/watch?v=privacy-gate-test'
+  const sessionId = 'privacy-gate-session'
+
+  await serviceWorker.evaluate(async () => {
+    await chrome.storage.local.remove('privacyConsentVersion')
+    await chrome.storage.session.remove('activeCapture')
+    const state = globalThis as typeof globalThis & {
+      privacyGateSnapshotCount?: number
+      privacyGateListenerInstalled?: boolean
+    }
+    state.privacyGateSnapshotCount = 0
+
+    if (!state.privacyGateListenerInstalled) {
+      state.privacyGateListenerInstalled = true
+      chrome.runtime.onMessage.addListener((message: { type?: string }) => {
+        if (message.type === 'player:snapshot') {
+          state.privacyGateSnapshotCount =
+            (state.privacyGateSnapshotCount ?? 0) + 1
+        }
+      })
+    }
+  })
+
+  await context.route('https://www.youtube.com/**', (route) =>
+    route.fulfill({
+      contentType: 'text/html',
+      body: `<!doctype html>
+        <html><body>
+          <div id="movie_player"></div>
+          <video class="html5-main-video"></video>
+        </body></html>`,
+    }),
+  )
+
+  const page = await context.newPage()
+  await page.goto(youtubeUrl)
+  await page.waitForTimeout(650)
+
+  expect(
+    await serviceWorker.evaluate(() =>
+      (globalThis as typeof globalThis & { privacyGateSnapshotCount?: number })
+        .privacyGateSnapshotCount ?? 0,
+    ),
+  ).toBe(0)
+
+  const requestObservation = async (requestedSessionId = sessionId) => {
+    await serviceWorker.evaluate(async ({ url, activeSessionId }) => {
+      const [tab] = await chrome.tabs.query({ url })
+      if (tab?.id === undefined) {
+        throw new Error('The routed YouTube test tab was not found.')
+      }
+      await chrome.tabs.sendMessage(tab.id, {
+        type: 'player:observation:start',
+        sessionId: activeSessionId,
+      })
+    }, { url: youtubeUrl, activeSessionId: requestedSessionId })
+  }
+
+  await requestObservation()
+  await page.waitForTimeout(400)
+  expect(
+    await serviceWorker.evaluate(() =>
+      (globalThis as typeof globalThis & { privacyGateSnapshotCount?: number })
+        .privacyGateSnapshotCount ?? 0,
+    ),
+  ).toBe(0)
+
+  await serviceWorker.evaluate(async () => {
+    await chrome.storage.local.set({ privacyConsentVersion: 1 })
+  })
+  await requestObservation()
+  await page.waitForTimeout(400)
+  expect(
+    await serviceWorker.evaluate(() =>
+      (globalThis as typeof globalThis & { privacyGateSnapshotCount?: number })
+        .privacyGateSnapshotCount ?? 0,
+    ),
+  ).toBe(0)
+
+  await serviceWorker.evaluate(async ({ url, activeSessionId }) => {
+    const [tab] = await chrome.tabs.query({ url })
+    if (tab?.id === undefined) {
+      throw new Error('The routed YouTube test tab was not found.')
+    }
+    await chrome.storage.session.set({
+      activeCapture: { tabId: tab.id, sessionId: activeSessionId },
+    })
+  }, { url: youtubeUrl, activeSessionId: sessionId })
+  await requestObservation()
+
+  await expect
+    .poll(() =>
+      serviceWorker.evaluate(() =>
+        (globalThis as typeof globalThis & { privacyGateSnapshotCount?: number })
+          .privacyGateSnapshotCount ?? 0,
+      ),
+    )
+    .toBeGreaterThan(0)
+
+  const countBeforeStaleStart = await serviceWorker.evaluate(() =>
+    (globalThis as typeof globalThis & { privacyGateSnapshotCount?: number })
+      .privacyGateSnapshotCount ?? 0,
+  )
+  await requestObservation('stale-session')
+  await page.waitForTimeout(400)
+  expect(
+    await serviceWorker.evaluate(() =>
+      (globalThis as typeof globalThis & { privacyGateSnapshotCount?: number })
+        .privacyGateSnapshotCount ?? 0,
+    ),
+  ).toBeGreaterThan(countBeforeStaleStart)
+
+  const youtubeTabId = await serviceWorker.evaluate(async (url) => {
+    const [tab] = await chrome.tabs.query({ url })
+    if (tab?.id === undefined) {
+      throw new Error('The routed YouTube test tab was not found.')
+    }
+    return tab.id
+  }, youtubeUrl)
+  const extensionSender = await context.newPage()
+  await extensionSender.goto(`chrome-extension://${extensionId}/sidepanel.html`)
+  await extensionSender.evaluate(async ({ tabId, activeSessionId }) => {
+    await chrome.runtime.sendMessage({
+      type: 'capture:ended',
+      tabId,
+      sessionId: activeSessionId,
+    })
+  }, { tabId: youtubeTabId, activeSessionId: sessionId })
+  await extensionSender.close()
+
+  await page.waitForTimeout(100)
+  const countAfterStop = await serviceWorker.evaluate(() =>
+    (globalThis as typeof globalThis & { privacyGateSnapshotCount?: number })
+      .privacyGateSnapshotCount ?? 0,
+  )
+  await page.waitForTimeout(650)
+  expect(
+    await serviceWorker.evaluate(() =>
+      (globalThis as typeof globalThis & { privacyGateSnapshotCount?: number })
+        .privacyGateSnapshotCount ?? 0,
+    ),
+  ).toBe(countAfterStop)
+
+  await page.close()
+  await context.unroute('https://www.youtube.com/**')
 })
 
 test('the packaged side panel exposes the three instruments', async () => {

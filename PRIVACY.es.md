@@ -3,9 +3,10 @@
 [Français](./PRIVACY.fr.md) | [English](./PRIVACY.md) | [中文](./PRIVACY.zh-CN.md) | **Español** | [Português](./PRIVACY.pt-BR.md)
 
 Fecha de entrada en vigor: 17 de julio de 2026  
-Última actualización: 17 de julio de 2026
+Última actualización: 22 de julio de 2026
 
-Editor: **[NOMBRE DEL EDITOR PENDIENTE]**  
+Editor: **Color Analyzer**
+
 Contacto de privacidad: **[dyvyn.7@gmail.com](mailto:dyvyn.7@gmail.com)**
 
 ## 1. Finalidad de la extensión
@@ -14,7 +15,8 @@ YouTube Color Analyzer es una extensión de Chrome que genera localmente una Par
 
 ## 2. Resumen
 
-- el análisis solo comienza después de que el usuario haga clic explícitamente en el icono de la extensión;
+- el análisis solo comienza después de que el usuario haga clic explícitamente en el icono de la extensión y, durante el primer uso o tras actualizarse la divulgación, acepte la divulgación de datos mostrada en la extensión;
+- el contexto de la página y el estado del reproductor se observan únicamente durante una sesión de análisis activa, y la observación termina con dicha sesión;
 - los píxeles visibles del vídeo se procesan localmente en el dispositivo;
 - no se captura el audio;
 - ninguna imagen del vídeo se guarda en el disco ni se envía al editor;
@@ -29,11 +31,11 @@ Durante una sesión de análisis activa, la extensión captura temporalmente la 
 
 La salida capturada puede incluir elementos superpuestos de forma visible sobre el vídeo, como subtítulos o controles del reproductor. La extensión avisa de algunos de estos casos porque pueden afectar a la medición.
 
-Las matrices de píxeles sin procesar se conservan en la memoria de trabajo durante el tiempo necesario para calcular una medición y después se liberan sus referencias. El lienzo local puede conservar en memoria la última imagen recortada hasta que otra imagen la sustituya o se destruya el documento fuera de pantalla. Ninguna imagen se escribe en un almacenamiento persistente, se añade a un historial ni se transmite por Internet.
+Las matrices de píxeles sin procesar se conservan en la memoria de trabajo durante el tiempo necesario para calcular una medición y después se liberan sus referencias. Durante una sesión activa, el lienzo local puede conservar en memoria la última imagen recortada hasta que otra imagen la sustituya. Cuando se detiene la captura, el lienzo se restablece a 1 × 1 píxel y se libera la fuente de vídeo. Ninguna imagen se escribe en un almacenamiento persistente, se añade a un historial ni se transmite por Internet.
 
 ### 3.2 Contexto de la página y estado del reproductor
 
-Un script local de la extensión está presente en las páginas de `youtube.com`. Observa periódicamente el contexto de la página y el estado del reproductor, incluso cuando no hay ninguna captura activa. Cuando no existe una sesión de análisis, estos mensajes se ignoran y no se almacenan. Para localizar correctamente el vídeo, gestionar la navegación interna de YouTube y sincronizar las mediciones, la extensión trata temporalmente:
+Un script local de la extensión está presente en las páginas de `youtube.com`, pero permanece inactivo hasta que el usuario haya aceptado la divulgación de datos vigente e inicie explícitamente un análisis. Únicamente durante una sesión de análisis activa, observa periódicamente el contexto de la página y el estado del reproductor. Esta observación se detiene de inmediato cuando el usuario selecciona «Detener», navega a una página no compatible, cierra la pestaña o finaliza la captura. Al cerrar el panel lateral, se detiene tras un breve periodo de gracia técnico que permite tolerar una recarga del panel. El contexto del reproductor no se observa entre sesiones de análisis. Para localizar correctamente el vídeo, detectar la navegación interna de YouTube y sincronizar las mediciones durante la sesión activa, la extensión trata temporalmente:
 
 - la dirección de la página de YouTube actual y el identificador del vídeo;
 - el tiempo de reproducción y el estado de reproducción, pausa o búsqueda;
@@ -68,12 +70,12 @@ YouTube y Google pueden tratar datos de forma independiente cuando el usuario ut
 
 ## 5. Conservación y eliminación
 
-- **Píxeles del vídeo**: memoria de trabajo local; las matrices sin procesar se liberan después del cálculo, mientras que el último recorte puede permanecer en el lienzo hasta que se sustituya o se destruya el documento fuera de pantalla.
-- **Contexto del reproductor**: memoria temporal, sustituida continuamente. La observación local continúa mientras la página de YouTube permanezca cargada, pero los mensajes se ignoran y no se almacenan cuando no hay un análisis activo.
+- **Píxeles del vídeo**: memoria de trabajo local; las matrices sin procesar se liberan después del cálculo. El último recorte solo puede permanecer en el lienzo durante la sesión activa; al detenerse, el lienzo se restablece a 1 × 1 píxel y se libera la fuente de vídeo.
+- **Contexto del reproductor**: memoria temporal, sustituida continuamente solo durante una sesión de análisis activa. La observación no comienza antes del consentimiento y se detiene de inmediato cuando termina la sesión.
 - **Estado de la sesión**: el identificador de la captura activa se elimina cuando se detiene la captura; el último estado puede permanecer en el almacenamiento de sesión de Chrome hasta que termine la sesión del navegador.
 - **Preferencias de visualización y versión del consentimiento**: almacenamiento local de Chrome, conservadas hasta que se modifican, se eliminan o se desinstala la extensión.
 
-El usuario puede detener la captura y el análisis de píxeles seleccionando «Detener», cerrando el panel, saliendo del vídeo o cerrando la pestaña. Al cerrar el panel se aplica un breve periodo de gracia técnico para permitir que se recargue. En una página de YouTube que permanezca cargada, la observación local del contexto del reproductor puede continuar, pero sus mensajes se ignoran mientras no haya un análisis activo. Las preferencias guardadas se pueden eliminar borrando los datos de la extensión en Chrome o desinstalando la extensión.
+Seleccionar «Detener», navegar a una página no compatible, cerrar la pestaña o el fin de la captura detienen de inmediato la captura, el análisis de píxeles y la observación del contexto del reproductor. Cerrar el panel lateral activa la misma limpieza tras un breve periodo de gracia técnico que permite tolerar una recarga del panel. Esta limpieza restablece el lienzo de análisis a 1 × 1 píxel y libera la fuente de vídeo. El contexto del reproductor no se observa antes del consentimiento ni después de que termine la sesión de análisis activa. Las preferencias guardadas se pueden eliminar borrando los datos de la extensión en Chrome o desinstalando la extensión.
 
 El editor no posee ninguna copia remota de esta información y, por tanto, no puede consultarla ni eliminarla de forma remota.
 
@@ -81,12 +83,11 @@ El editor no posee ninguna copia remota de esta información y, por tanto, no pu
 
 La extensión utiliza únicamente los permisos necesarios para su finalidad:
 
-- **activeTab**: después de una acción del usuario, comprobar que la pestaña activa contiene un vídeo de YouTube compatible;
 - **tabCapture**: capturar temporalmente la salida visible de la pestaña seleccionada, sin audio;
 - **offscreen**: recibir y analizar localmente el flujo capturado en un documento fuera de pantalla de Chrome;
 - **sidePanel**: mostrar los instrumentos y sus controles en el panel lateral de Chrome;
 - **storage**: conservar las preferencias locales, la versión del consentimiento y el estado técnico de la sesión;
-- **acceso a `https://www.youtube.com/*`**: detectar el reproductor de YouTube, su geometría y su estado. La captura solo comienza en una página `/watch` compatible después de una acción del usuario.
+- **acceso a `https://www.youtube.com/*`**: únicamente durante una sesión de análisis activa, detectar el reproductor de YouTube, su geometría, su estado y la navegación fuera del vídeo seleccionado. La captura solo comienza en una página `/watch` compatible después del consentimiento y de una acción del usuario.
 
 ## 7. Seguridad
 

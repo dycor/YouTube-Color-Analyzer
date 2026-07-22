@@ -5,9 +5,9 @@
 ## Get help
 
 - Support email: **[dyvyn.7@gmail.com](mailto:dyvyn.7@gmail.com)**
-- Issue tracker: **[PUBLIC ISSUE TRACKER URL TO COMPLETE]**
+- Issue tracker: **[GitHub Issues](https://github.com/dycor/YouTube-Color-Analyzer/issues)**
 - Privacy Policy: [PRIVACY.md](./PRIVACY.md)
-- Target response time: **[TIME TO COMPLETE, FOR EXAMPLE 5 BUSINESS DAYS]**
+- Target response time: **5 business days**
 
 Do not send screenshots containing personal information, a private account, or confidential content. The extension never needs your YouTube or Google password.
 

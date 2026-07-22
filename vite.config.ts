@@ -1,7 +1,24 @@
+import { rm } from 'node:fs/promises'
 import { resolve } from 'node:path'
-import { defineConfig } from 'vite'
+import { defineConfig, type Plugin } from 'vite'
 
-export default defineConfig({
+function excludeSourceArtwork(): Plugin {
+  let outputDirectory = resolve(import.meta.dirname, 'dist')
+
+  return {
+    name: 'exclude-source-artwork',
+    apply: 'build',
+    configResolved(config) {
+      outputDirectory = resolve(config.root, config.build.outDir)
+    },
+    async closeBundle() {
+      await rm(resolve(outputDirectory, 'icons/logo-master.png'), { force: true })
+    },
+  }
+}
+
+export default defineConfig(({ mode }) => ({
+  plugins: [excludeSourceArtwork()],
   build: {
     emptyOutDir: true,
     rollupOptions: {
@@ -17,8 +34,7 @@ export default defineConfig({
         assetFileNames: 'assets/[name]-[hash][extname]',
       },
     },
-    sourcemap: true,
+    sourcemap: mode === 'development',
     target: 'chrome116',
   },
-})
-
+}))

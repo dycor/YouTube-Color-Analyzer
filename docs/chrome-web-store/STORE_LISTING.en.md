@@ -1,6 +1,6 @@
 # Chrome Web Store listing — English
 
-> Copy-ready content for the Developer Dashboard. Replace every bracketed field before submission.
+> Copy-ready content for the Developer Dashboard.
 
 ## General information
 
@@ -8,15 +8,15 @@
 - **Short summary**: Analyze YouTube video colors locally with YRGB/RGB Parade, Waveform, and Rec.709 Vectorscope.
 - **Language**: English
 - **Recommended category**: Productivity
-- **Homepage URL**: `[PUBLIC PROJECT URL TO COMPLETE]`
-- **Support URL**: `[PUBLIC SUPPORT URL TO COMPLETE]`
-- **Privacy policy URL**: `[PUBLIC URL FOR PRIVACY.md TO COMPLETE]`
+- **Homepage URL**: `https://dycor.github.io/YouTube-Color-Analyzer/`
+- **Support URL**: `https://dycor.github.io/YouTube-Color-Analyzer/support/`
+- **Privacy policy URL**: `https://dycor.github.io/YouTube-Color-Analyzer/privacy/`
 
 ## Prominent user-data disclosure
 
 Place this copy near the beginning of the description rather than hiding it in a secondary section:
 
-> **Data processing:** on YouTube pages, the extension locally reads the page address, video identifier, and player state to detect and frame a compatible video. After you accept the in-extension disclosure and start analysis, it temporarily captures the visual output of the active tab, without audio, and crops the video area to calculate the scopes. Pixels, the page address, and playback state remain in your browser. No image or playback data is sent to a server, the publisher, or any third party. Display preferences and the consent version are kept in Chrome local storage. A capture identifier and the latest technical state are kept temporarily in session storage and disappear no later than the end of the browser session.
+> **Data processing:** only after you accept the current in-extension disclosure and explicitly start analysis does the extension locally read the YouTube page address, video identifier, and player state needed to detect and frame a compatible video. It observes this context only during the active analysis session. The extension temporarily captures the visual output of the active tab, without audio, and crops the video area to calculate the scopes. Selecting Stop, closing the side panel, navigating away, or the capture ending immediately stops both context observation and capture. Pixels, the page address, and playback state remain in your browser. No image or playback data is sent to a server, the publisher, or any third party. Display preferences and the consent version are kept in Chrome local storage. A capture identifier and the latest technical state are kept temporarily in session storage and disappear no later than the end of the browser session.
 
 ## Detailed description
 
@@ -26,9 +26,9 @@ It is designed for editors, colorists, and creators who want to study a referenc
 
 DATA PROCESSING
 
-On YouTube pages, the extension locally reads the page address, video identifier, and player state to detect and frame a compatible video. After you accept the in-extension disclosure and start analysis, it temporarily captures the visual output of the active tab, without audio, and crops the video area to calculate the scopes.
+Only after you accept the current in-extension disclosure and explicitly start analysis does the extension locally read the YouTube page address, video identifier, and player state needed to detect and frame a compatible video. It observes this context only during the active analysis session. The extension temporarily captures the visual output of the active tab, without audio, and crops the video area to calculate the scopes.
 
-Pixels, the page address, and playback state remain in your browser. No image or playback data is sent to a server, the publisher, or any third party. Display preferences and the consent version are kept in Chrome local storage. A capture identifier and the latest technical state are kept temporarily in session storage and disappear no later than the end of the browser session.
+Selecting Stop, closing the side panel, navigating away, or the capture ending immediately stops both context observation and capture. Pixels, the page address, and playback state remain in your browser. No image or playback data is sent to a server, the publisher, or any third party. Display preferences and the consent version are kept in Chrome local storage. A capture identifier and the latest technical state are kept temporarily in session storage and disappear no later than the end of the browser session.
 
 INCLUDED SCOPES
 
@@ -44,7 +44,7 @@ During playback, the scopes update live. When the video is paused, a more detail
 
 PRIVACY
 
-All calculations take place on the device. Video pixels remain only in local working memory; the latest crop may remain there until it is replaced or the offscreen document is destroyed. No image is stored persistently, exported, or sent to a server. The extension has no backend, advertising, or audience analytics and does not capture audio.
+All calculations take place on the device. Video pixels remain only in local working memory during the active analysis session. When analysis stops, the video source is released and the canvas is reset to 1 × 1 pixel. No image is stored persistently, exported, or sent to a server. The extension has no backend, advertising, or audience analytics and does not capture audio.
 
 COMPATIBILITY
 

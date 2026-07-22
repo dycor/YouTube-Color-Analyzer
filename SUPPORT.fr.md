@@ -5,9 +5,9 @@
 ## Obtenir de l’aide
 
 - Adresse d’assistance : **[dyvyn.7@gmail.com](mailto:dyvyn.7@gmail.com)**
-- Suivi des problèmes : **[URL PUBLIQUE DES ISSUES À COMPLÉTER]**
+- Suivi des problèmes : **[GitHub Issues](https://github.com/dycor/YouTube-Color-Analyzer/issues)**
 - Politique de confidentialité : [PRIVACY.fr.md](./PRIVACY.fr.md)
-- Délai de réponse indicatif : **[DÉLAI À COMPLÉTER, PAR EXEMPLE 5 JOURS OUVRÉS]**
+- Délai de réponse indicatif : **5 jours ouvrés**
 
 N’envoyez pas de capture contenant des informations personnelles, un compte privé ou du contenu confidentiel. L’extension ne nécessite jamais votre mot de passe YouTube ou Google.
 

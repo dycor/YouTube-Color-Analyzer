@@ -6,6 +6,7 @@ interface ExtensionManifest {
   manifest_version: number
   default_locale: string
   name: string
+  short_name: string
   description: string
   minimum_chrome_version: string
   host_permissions: string[]
@@ -24,6 +25,29 @@ async function readManifest(): Promise<ExtensionManifest> {
   return JSON.parse(content) as ExtensionManifest
 }
 
+function pngHasAlpha(bytes: Buffer): boolean {
+  const colorType = bytes[25]
+
+  if (colorType === 4 || colorType === 6) {
+    return true
+  }
+
+  let offset = 8
+
+  while (offset + 12 <= bytes.length) {
+    const chunkLength = bytes.readUInt32BE(offset)
+    const chunkType = bytes.toString('ascii', offset + 4, offset + 8)
+
+    if (chunkType === 'tRNS') {
+      return true
+    }
+
+    offset += chunkLength + 12
+  }
+
+  return false
+}
+
 describe('extension manifest', () => {
   it('uses Manifest V3 and Chrome 116 as its minimum', async () => {
     const manifest = await readManifest()
@@ -35,6 +59,7 @@ describe('extension manifest', () => {
     const manifest = await readManifest()
     expect(manifest.default_locale).toBe('en')
     expect(manifest.name).toBe('__MSG_extensionName__')
+    expect(manifest.short_name).toBe('__MSG_extensionShortName__')
     expect(manifest.description).toBe('__MSG_extensionDescription__')
 
     const localesUrl = new URL('../public/_locales/', import.meta.url)
@@ -56,9 +81,22 @@ describe('extension manifest', () => {
       )
       const messages = JSON.parse(content) as Record<string, { message?: string }>
       expect(messages.extensionName?.message).toBeTruthy()
+      expect(messages.extensionShortName?.message).toBeTruthy()
       expect(messages.extensionDescription?.message).toBeTruthy()
       expect(messages.actionTitle?.message).toBeTruthy()
     }
+  })
+
+  it('keeps the English short name within Chrome’s 12-character limit', async () => {
+    const content = await readFile(
+      new URL('../public/_locales/en/messages.json', import.meta.url),
+      'utf8',
+    )
+    const messages = JSON.parse(content) as Record<string, { message?: string }>
+    const shortName = messages.extensionShortName?.message
+
+    expect(shortName).toBe('Color Scope')
+    expect(shortName?.length).toBeLessThanOrEqual(12)
   })
 
   it('limits host access to YouTube', async () => {
@@ -68,9 +106,12 @@ describe('extension manifest', () => {
 
   it('declares the capture and side panel capabilities', async () => {
     const manifest = await readManifest()
-    expect(manifest.permissions).toEqual(
-      expect.arrayContaining(['activeTab', 'offscreen', 'sidePanel', 'storage', 'tabCapture']),
-    )
+    expect(manifest.permissions).toEqual([
+      'offscreen',
+      'sidePanel',
+      'storage',
+      'tabCapture',
+    ])
     expect(manifest.background.service_worker).toBe('service-worker.js')
     expect(manifest.side_panel.default_path).toBe('sidepanel.html')
   })
@@ -91,9 +132,14 @@ describe('extension manifest', () => {
     })
 
     await Promise.all(
-      Object.values(expectedIcons).map((iconPath) =>
-        readFile(new URL(`../public/${iconPath}`, import.meta.url)),
-      ),
+      Object.entries(expectedIcons).map(async ([size, iconPath]) => {
+        const bytes = await readFile(
+          new URL(`../public/${iconPath}`, import.meta.url),
+        )
+        expect(bytes.readUInt32BE(16)).toBe(Number(size))
+        expect(bytes.readUInt32BE(20)).toBe(Number(size))
+        expect(pngHasAlpha(bytes)).toBe(true)
+      }),
     )
   })
 })

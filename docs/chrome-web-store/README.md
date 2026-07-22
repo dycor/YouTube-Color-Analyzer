@@ -19,20 +19,19 @@ Documents publics situés à la racine :
 - politiques de confidentialité : [`PRIVACY.md`](../../PRIVACY.md) et traductions ;
 - assistance : [`SUPPORT.md`](../../SUPPORT.md) et traductions.
 
-## Informations à compléter par l’éditeur
+## Informations publiques retenues
 
-Rechercher dans le projet les marqueurs de remplacement (`À COMPLÉTER`, `TO COMPLETE`, `待填写`, `PENDIENTE` et `A PREENCHER`), puis renseigner :
+- éditeur : **Color Analyzer** ;
+- développeur : **dycor** ;
+- contact : **[dyvyn.7@gmail.com](mailto:dyvyn.7@gmail.com)** ;
+- délai de réponse indicatif : **5 jours ouvrés** ;
+- site public : `https://dycor.github.io/YouTube-Color-Analyzer/` ;
+- suivi des problèmes : `https://github.com/dycor/YouTube-Color-Analyzer/issues`.
 
-- nom légal ou nom public de l’éditeur ;
-- adresse d’assistance et de confidentialité ;
-- délai de réponse indicatif ;
-- URL publique du projet ;
-- URL publique de la politique de confidentialité ;
-- URL publique d’assistance ou du suivi des problèmes ;
-- statut trader ou non-trader dans le Dashboard.
+Le statut trader ou non-trader reste à déclarer honnêtement dans le Dashboard ; il ne s’agit pas d’un champ du site public.
 
 ## Important
 
-Ces textes ont été rédigés à partir du comportement du code au 17 juillet 2026. Ils doivent être réaudités si les permissions, le stockage, les appels réseau, la capture ou la finalité du produit changent.
+Ces textes ont été réaudités à partir du comportement du code au 22 juillet 2026. Ils doivent être réaudités si les permissions, le stockage, les appels réseau, la capture ou la finalité du produit changent.
 
 Ils facilitent la conformité au Chrome Web Store mais ne constituent pas un avis juridique. L’éditeur reste responsable des informations déclarées et des obligations applicables dans les pays de distribution.

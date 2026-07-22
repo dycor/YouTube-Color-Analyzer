@@ -1,6 +1,13 @@
 import { describe, expect, it } from 'vitest'
 
 import { analyzePixels } from '../src/core/analyze'
+import {
+  byteToUnit,
+  rec709Luma,
+  rgbToVectorscope,
+  unitToByte,
+  vectorPointToBin,
+} from '../src/core/color'
 
 function pixelBuffer(
   pixels: Array<readonly [number, number, number, number?]>,
@@ -173,10 +180,69 @@ describe('scope analysis', () => {
     expect(frame.vectorDensity.reduce((sum, value) => sum + value, 0)).toBe(4)
   })
 
+  it('matches the reference color conversion for a representative live frame', () => {
+    const width = 640
+    const height = 3
+    const rgba = new Uint8ClampedArray(width * height * 4)
+
+    for (let pixel = 0; pixel < width * height; pixel += 1) {
+      const offset = pixel * 4
+      rgba[offset] = (pixel * 31) % 256
+      rgba[offset + 1] = (pixel * 67) % 256
+      rgba[offset + 2] = (pixel * 101) % 256
+      rgba[offset + 3] = pixel % 17 === 0 ? 0 : 255
+    }
+
+    const frame = analyzePixels({
+      frameId: 9,
+      capturedAt: 0,
+      detailed: false,
+      width,
+      height,
+      rgba,
+    })
+    const expectedChannels = new Uint32Array(frame.channelDensity.length)
+    const expectedVectors = new Uint32Array(frame.vectorDensity.length)
+
+    for (let pixel = 0; pixel < width * height; pixel += 1) {
+      const offset = pixel * 4
+
+      if (rgba[offset + 3] === 0) {
+        continue
+      }
+
+      const rByte = rgba[offset]!
+      const gByte = rgba[offset + 1]!
+      const bByte = rgba[offset + 2]!
+      const r = byteToUnit(rByte)
+      const g = byteToUnit(gByte)
+      const b = byteToUnit(bByte)
+      const x = pixel % width
+      const xBin = Math.floor((x * frame.xBins) / width)
+      const luma = unitToByte(rec709Luma(r, g, b))
+
+      for (const [channel, level] of [
+        [0, luma],
+        [1, rByte],
+        [2, gByte],
+        [3, bByte],
+      ] as const) {
+        const index = (channel * frame.xBins + xBin) * 256 + level
+        expectedChannels[index]! += 1
+      }
+
+      const vector = vectorPointToBin(rgbToVectorscope(r, g, b), 256)
+      expectedVectors[vector.y * 256 + vector.x]! += 1
+    }
+
+    expect(frame.channelDensity).toEqual(expectedChannels)
+    expect(frame.vectorDensity).toEqual(expectedVectors)
+  })
+
   it('rejects buffers whose size does not match the frame', () => {
     expect(() =>
       analyzePixels({
-        frameId: 9,
+        frameId: 10,
         capturedAt: 0,
         detailed: false,
         width: 2,

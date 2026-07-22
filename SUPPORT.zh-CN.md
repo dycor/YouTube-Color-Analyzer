@@ -5,9 +5,9 @@
 ## 获取帮助
 
 - 支持邮箱：**[dyvyn.7@gmail.com](mailto:dyvyn.7@gmail.com)**
-- 问题跟踪器：**[待填写的公开问题跟踪器网址]**
+- 问题跟踪器：**[GitHub Issues](https://github.com/dycor/YouTube-Color-Analyzer/issues)**
 - 隐私政策：[PRIVACY.zh-CN.md](./PRIVACY.zh-CN.md)
-- 目标响应时间：**[待填写的时间，例如 5 个工作日]**
+- 目标响应时间：**5 个工作日**
 
 请勿发送包含个人信息、私人账户或机密内容的屏幕截图。本扩展程序绝不会要求您提供 YouTube 或 Google 密码。
 

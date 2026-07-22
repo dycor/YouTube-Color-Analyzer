@@ -5,9 +5,9 @@
 ## Obter ajuda
 
 - E-mail de suporte: **[dyvyn.7@gmail.com](mailto:dyvyn.7@gmail.com)**
-- Rastreador de problemas: **[URL PÚBLICA DO RASTREADOR DE PROBLEMAS A PREENCHER]**
+- Rastreador de problemas: **[GitHub Issues](https://github.com/dycor/YouTube-Color-Analyzer/issues)**
 - Política de Privacidade: [PRIVACY.pt-BR.md](./PRIVACY.pt-BR.md)
-- Prazo estimado de resposta: **[PRAZO A PREENCHER, POR EXEMPLO, 5 DIAS ÚTEIS]**
+- Prazo estimado de resposta: **5 dias úteis**
 
 Não envie capturas de tela que contenham informações pessoais, uma conta privada ou conteúdo confidencial. A extensão nunca precisa da sua senha do YouTube ou do Google.
 

@@ -6,32 +6,118 @@
     <title>Color Analyzer — UI Preview</title>
     <script>
       (() => {
-        const xBins = 192
+        const parameters = new URLSearchParams(window.location.search)
+        const detailed = parameters.get('detailed') === 'true'
+        const sourceWidth = detailed ? 1920 : 640
+        const sourceHeight = detailed ? 1080 : 360
+        const xBins = detailed ? 1024 : 512
         const levelBins = 256
         const vectorSize = 256
         const channelIntensity = new Uint8Array(4 * xBins * levelBins)
         const vectorIntensity = new Uint8Array(vectorSize * vectorSize)
+        const channelDensity = new Uint16Array(channelIntensity.length)
+        const vectorDensity = new Uint32Array(vectorIntensity.length)
+        const clampByte = (value) => Math.max(0, Math.min(255, Math.round(value)))
 
-        for (let channel = 0; channel < 4; channel += 1) {
-          for (let x = 0; x < xBins; x += 1) {
-            const wave = Math.sin(x / 18) * 17 + Math.sin(x / 43) * 9
-            const level = Math.round(44 + channel * 19 + wave + (x / xBins) * 36)
+        // Deterministic, procedural image data creates realistic scope density
+        // without embedding a video frame or any third-party asset.
+        for (let x = 0; x < xBins; x += 1) {
+          const horizontal = x / (xBins - 1)
 
-            for (let spread = -5; spread <= 5; spread += 1) {
-              const bounded = Math.max(0, Math.min(255, level + spread))
-              const index = (channel * xBins + x) * levelBins + bounded
-              channelIntensity[index] = 245 - Math.abs(spread) * 32
+          for (let sampleY = 0; sampleY < 180; sampleY += 1) {
+            const vertical = sampleY / 179
+            const grain =
+              Math.sin(x * 12.9898 + sampleY * 78.233) * 5 +
+              Math.sin(x * 0.19 + sampleY * 0.47) * 2
+            let value = 202 - vertical * 17 + Math.sin(horizontal * 8) * 4 + grain
+            let warmth = -7 + horizontal * 9
+            let coolness = 9
+
+            const head =
+              ((horizontal - 0.57) / 0.13) ** 2 +
+              ((vertical - 0.42) / 0.23) ** 2
+            const shoulders =
+              ((horizontal - 0.55) / 0.37) ** 2 +
+              ((vertical - 0.94) / 0.34) ** 2
+
+            if (head < 1) {
+              value = 35 + head * 48 + grain * 0.7
+              warmth = 20
+              coolness = -12
+            } else if (shoulders < 1) {
+              value = 28 + shoulders * 42 + grain * 0.65
+              warmth = 12
+              coolness = -7
             }
+
+            if (horizontal > 0.88 && vertical > 0.18 && vertical < 0.84) {
+              value = 224 - vertical * 10 + grain * 0.45
+              warmth = -18
+              coolness = 30
+            }
+
+            if (horizontal > 0.9 && vertical > 0.25 && vertical < 0.33) {
+              value = 244 + grain * 0.15
+            }
+
+            let red = clampByte(value + warmth)
+            let green = clampByte(value + warmth * 0.18)
+            let blue = clampByte(value + coolness)
+            const warmAccent =
+              ((horizontal - 0.18) / 0.075) ** 2 +
+              ((vertical - 0.72) / 0.11) ** 2
+            const coolAccent =
+              ((horizontal - 0.8) / 0.07) ** 2 +
+              ((vertical - 0.7) / 0.1) ** 2
+
+            if (warmAccent < 1) {
+              red = clampByte(190 - warmAccent * 34 + grain)
+              green = clampByte(79 + warmAccent * 22 + grain * 0.4)
+              blue = clampByte(52 + warmAccent * 18)
+            } else if (coolAccent < 1) {
+              red = clampByte(45 + coolAccent * 18)
+              green = clampByte(126 - coolAccent * 20 + grain * 0.3)
+              blue = clampByte(196 - coolAccent * 32 + grain)
+            }
+            const luma = clampByte(0.2126 * red + 0.7152 * green + 0.0722 * blue)
+            const levels = [luma, red, green, blue]
+
+            levels.forEach((level, channel) => {
+              const index = (channel * xBins + x) * levelBins + level
+              channelDensity[index] += 1
+            })
+
+            const redUnit = red / 255
+            const greenUnit = green / 255
+            const blueUnit = blue / 255
+            const yUnit = 0.2126 * redUnit + 0.7152 * greenUnit + 0.0722 * blueUnit
+            const cb = (blueUnit - yUnit) / 1.8556
+            const cr = (redUnit - yUnit) / 1.5748
+            const vectorX = Math.round(Math.max(0, Math.min(1, cr + 0.5)) * 255)
+            const vectorY = Math.round(Math.max(0, Math.min(1, 0.5 - cb)) * 255)
+            vectorDensity[vectorY * vectorSize + vectorX] += 1
           }
         }
 
-        for (let angle = 0; angle < 360; angle += 1) {
-          const radians = (angle * Math.PI) / 180
-          const radius = 33 + Math.sin(angle / 19) * 7
-          const x = Math.round(128 + Math.cos(radians) * radius)
-          const y = Math.round(128 + Math.sin(radians) * radius * 0.58)
-          vectorIntensity[y * vectorSize + x] = 185
-        }
+        const channelPeak = channelDensity.reduce(
+          (peak, value) => Math.max(peak, value),
+          0,
+        )
+        const vectorPeak = vectorDensity.reduce(
+          (peak, value) => Math.max(peak, value),
+          0,
+        )
+
+        channelDensity.forEach((value, index) => {
+          channelIntensity[index] = Math.round(
+            255 * Math.pow(value / channelPeak, 0.38),
+          )
+        })
+        vectorDensity.forEach((value, index) => {
+          vectorIntensity[index] = Math.round(
+            255 * Math.pow(value / vectorPeak, 0.28),
+          )
+        })
 
         const encode = (bytes) => {
           let binary = ''
@@ -47,20 +133,27 @@
         const frame = {
           frameId: 1,
           capturedAt: Date.now(),
-          detailed: false,
-          sourceWidth: 640,
-          sourceHeight: 360,
+          detailed,
+          sourceWidth,
+          sourceHeight,
           xBins,
           levelBins,
           vectorSize,
-          sampleCount: 230400,
-          computeMs: 18.4,
+          sampleCount: sourceWidth * sourceHeight,
+          computeMs: detailed ? 41.7 : 18.4,
           channelIntensityBase64: encode(channelIntensity),
           vectorIntensityBase64: encode(vectorIntensity),
         }
+        const requestedScope = parameters.get('scope')
+        const activeScope = ['parade', 'waveform', 'vectorscope'].includes(requestedScope)
+          ? requestedScope
+          : 'waveform'
+        const previewStatus = parameters.get('status') === 'paused'
+          ? 'paused'
+          : 'active'
         const stored = {
           panelSettings: {
-            activeScope: 'waveform',
+            activeScope,
             paradeMode: 'yrgb',
             waveformChannels: { y: false, r: true, g: true, b: true },
             waveformColorized: true,
@@ -68,10 +161,13 @@
           },
         }
 
+        if (parameters.get('consent') !== 'pending') {
+          stored.privacyConsentVersion = 1
+        }
+
         window.chrome = {
           i18n: {
-            getUILanguage: () =>
-              new URLSearchParams(window.location.search).get('lang') ?? 'en-US',
+            getUILanguage: () => parameters.get('lang') ?? 'en-US',
           },
           runtime: {
             id: 'ui-preview',
@@ -87,7 +183,7 @@
                     type: 'session:state',
                     target: 'sidepanel',
                     state: {
-                      status: 'active',
+                      status: previewStatus,
                       sessionId: 'preview-session',
                       captionsVisible: false,
                       hdrDetected: false,
@@ -111,7 +207,7 @@
             session: {
               get: async () => ({
                 lastSessionState: {
-                  status: 'active',
+                  status: previewStatus,
                   sessionId: 'preview-session',
                   captionsVisible: false,
                   hdrDetected: false,

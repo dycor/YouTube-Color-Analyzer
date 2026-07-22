@@ -3,7 +3,7 @@
     "message": "YouTube Color Analyzer"
   },
   "extensionShortName": {
-    "message": "Color Analyzer"
+    "message": "Color Scope"
   },
   "extensionDescription": {
     "message": "Analyze the visible color of a YouTube video with Parade, Waveform, and Vectorscope."

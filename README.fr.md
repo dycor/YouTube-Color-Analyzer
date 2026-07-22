@@ -42,6 +42,9 @@ pnpm typecheck  # vérifie les types TypeScript
 pnpm test       # exécute les tests unitaires
 pnpm build      # produit le dossier dist/
 pnpm test:e2e   # construit puis charge l'extension dans Chromium
+pnpm site:build # génère le site public GitHub Pages
+pnpm assets:store # régénère les visuels du Chrome Web Store
+pnpm package:store # crée et vérifie le ZIP de soumission
 ```
 
 Pour prévisualiser uniquement l’interface avec des données synthétiques, exécuter `pnpm ui:preview` puis ouvrir `/preview.html` sur l’adresse locale affichée par Vite. Le paramètre `?lang=` permet de vérifier une langue, par exemple `/preview.html?lang=zh-CN`.
@@ -54,7 +57,7 @@ Pour prévisualiser uniquement l’interface avec des données synthétiques, ex
 4. Cliquer sur « Charger l'extension non empaquetée ».
 5. Sélectionner le dossier `dist/`.
 6. Ouvrir une page `https://www.youtube.com/watch?...`.
-7. Cliquer sur l'icône de l'extension pour ouvrir le panneau et démarrer l'analyse.
+7. Cliquer sur l'icône, lire la divulgation de première utilisation puis l'accepter explicitement pour démarrer l'analyse.
 
 ## Architecture
 
@@ -78,9 +81,11 @@ Les images RGBA restent dans le document hors écran et le worker de calcul. Le 
 
 ## Publication, confidentialité et assistance
 
+- Le [site public](https://dycor.github.io/YouTube-Color-Analyzer/fr/) fournit les pages françaises et le sélecteur de langue.
 - [`PRIVACY.fr.md`](./PRIVACY.fr.md) contient la politique de confidentialité et ses traductions.
 - [`SUPPORT.fr.md`](./SUPPORT.fr.md) contient les informations d’assistance et de dépannage.
 - [`docs/chrome-web-store/`](./docs/chrome-web-store/) contient le dossier de publication Chrome Web Store : fiches localisées, déclarations de données, instructions de test et checklist.
+- [`store-assets/`](./store-assets/) contient les captures et visuels promotionnels générés.
 
 ## Licence
 

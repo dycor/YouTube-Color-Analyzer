@@ -33,6 +33,18 @@ describe('browser language localization', () => {
     expect(translateForLocale('pt', 'stop')).toBe('Parar')
   })
 
+  it('provides localized consent actions and disclosure copy', () => {
+    expect(translateForLocale('en', 'consentAccept')).toBe(
+      'Accept and start analysis',
+    )
+    expect(translateForLocale('fr', 'consentCancel')).toBe('Annuler')
+    expect(translateForLocale('zh', 'consentTitle')).toBe('本地视频分析')
+    expect(translateForLocale('es', 'privacyPolicy')).toBe(
+      'Política de privacidad',
+    )
+    expect(translateForLocale('pt', 'consentStop')).toContain('painel lateral')
+  })
+
   it('interpolates measurement dimensions without changing technical values', () => {
     expect(
       translateForLocale('es', 'qualityDetailed', {

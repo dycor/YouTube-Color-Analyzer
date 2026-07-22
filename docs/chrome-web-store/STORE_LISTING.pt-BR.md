@@ -1,6 +1,6 @@
 # Ficha da Chrome Web Store — Português (Brasil)
 
-> Conteúdo pronto para copiar no Painel do Desenvolvedor. Substitua todos os campos entre colchetes antes do envio.
+> Conteúdo pronto para copiar no Painel do Desenvolvedor.
 
 ## Informações gerais
 
@@ -8,15 +8,15 @@
 - **Resumo curto**: Analise localmente as cores de vídeos do YouTube com Parade YRGB/RGB, Waveform e Vectorscope Rec.709.
 - **Idioma**: português (Brasil)
 - **Categoria recomendada**: Produtividade
-- **URL da página inicial**: `[URL PÚBLICA DO PROJETO A PREENCHER]`
-- **URL de suporte**: `[URL PÚBLICA DE SUPORTE A PREENCHER]`
-- **URL da política de privacidade**: `[URL PÚBLICA DE PRIVACY.pt-BR.md A PREENCHER]`
+- **URL da página inicial**: `https://dycor.github.io/YouTube-Color-Analyzer/pt-BR/`
+- **URL de suporte**: `https://dycor.github.io/YouTube-Color-Analyzer/pt-BR/support/`
+- **URL da política de privacidade**: `https://dycor.github.io/YouTube-Color-Analyzer/pt-BR/privacy/`
 
 ## Divulgação destacada sobre os dados do usuário
 
 Coloque este texto próximo ao início da descrição, sem ocultá-lo em uma seção secundária:
 
-> **Processamento de dados:** nas páginas do YouTube, a extensão lê localmente o endereço da página, o identificador do vídeo e o estado do player para detectar e enquadrar um vídeo compatível. Depois que você aceita a divulgação na extensão e inicia a análise, ela captura temporariamente a saída visual da guia ativa, sem áudio, e recorta a área do vídeo para calcular os instrumentos. Os pixels, o endereço da página e o estado de reprodução permanecem no seu navegador. Nenhuma imagem ou dado de reprodução é enviado a um servidor, ao publicador ou a terceiros. As preferências de exibição e a versão do consentimento são mantidas no armazenamento local do Chrome. Um identificador de captura e o estado técnico mais recente são mantidos temporariamente no armazenamento de sessão e desaparecem, no mais tardar, ao fim da sessão do navegador.
+> **Processamento de dados:** somente depois que você aceita a divulgação vigente na extensão e inicia explicitamente a análise, ela lê localmente o endereço da página do YouTube, o identificador do vídeo e o estado do player necessários para detectar e enquadrar um vídeo compatível. Esse contexto é observado somente durante a sessão de análise ativa. A extensão captura temporariamente a saída visual da guia ativa, sem áudio, e recorta a área do vídeo para calcular os instrumentos. Selecionar “Parar”, fechar o painel lateral, navegar para outra página ou o fim da captura interrompem imediatamente tanto a observação do contexto quanto a captura. Os pixels, o endereço da página e o estado de reprodução permanecem no seu navegador. Nenhuma imagem ou dado de reprodução é enviado a um servidor, ao publicador ou a terceiros. As preferências de exibição e a versão do consentimento são mantidas no armazenamento local do Chrome. Um identificador de captura e o estado técnico mais recente são mantidos temporariamente no armazenamento de sessão e desaparecem, no mais tardar, ao fim da sessão do navegador.
 
 ## Descrição detalhada
 
@@ -26,9 +26,9 @@ Ele foi criado para editores, coloristas e criadores que desejam estudar um víd
 
 PROCESSAMENTO DE DADOS
 
-Nas páginas do YouTube, a extensão lê localmente o endereço da página, o identificador do vídeo e o estado do player para detectar e enquadrar um vídeo compatível. Depois que você aceita a divulgação na extensão e inicia a análise, ela captura temporariamente a saída visual da guia ativa, sem áudio, e recorta a área do vídeo para calcular os instrumentos.
+Somente depois que você aceita a divulgação vigente na extensão e inicia explicitamente a análise, ela lê localmente o endereço da página do YouTube, o identificador do vídeo e o estado do player necessários para detectar e enquadrar um vídeo compatível. Esse contexto é observado somente durante a sessão de análise ativa. A extensão captura temporariamente a saída visual da guia ativa, sem áudio, e recorta a área do vídeo para calcular os instrumentos.
 
-Os pixels, o endereço da página e o estado de reprodução permanecem no seu navegador. Nenhuma imagem ou dado de reprodução é enviado a um servidor, ao publicador ou a terceiros. As preferências de exibição e a versão do consentimento são mantidas no armazenamento local do Chrome. Um identificador de captura e o estado técnico mais recente são mantidos temporariamente no armazenamento de sessão e desaparecem, no mais tardar, ao fim da sessão do navegador.
+Selecionar “Parar”, fechar o painel lateral, navegar para outra página ou o fim da captura interrompem imediatamente tanto a observação do contexto quanto a captura. Os pixels, o endereço da página e o estado de reprodução permanecem no seu navegador. Nenhuma imagem ou dado de reprodução é enviado a um servidor, ao publicador ou a terceiros. As preferências de exibição e a versão do consentimento são mantidas no armazenamento local do Chrome. Um identificador de captura e o estado técnico mais recente são mantidos temporariamente no armazenamento de sessão e desaparecem, no mais tardar, ao fim da sessão do navegador.
 
 INSTRUMENTOS INCLUÍDOS
 
@@ -44,7 +44,7 @@ Durante a reprodução, os instrumentos são atualizados ao vivo. Quando o víde
 
 PRIVACIDADE
 
-Todos os cálculos são realizados no dispositivo. Os pixels do vídeo permanecem somente na memória de trabalho local; o último recorte pode permanecer nela até ser substituído ou até que o documento offscreen seja destruído. Nenhuma imagem é armazenada de forma persistente, exportada ou enviada a um servidor. A extensão não possui backend, publicidade nem análise de público e não captura áudio.
+Todos os cálculos são realizados no dispositivo. Os pixels do vídeo permanecem somente na memória de trabalho local durante a sessão de análise ativa. Quando a análise para, a fonte de vídeo é liberada e o canvas é redefinido para 1 × 1 pixel. Nenhuma imagem é armazenada de forma persistente, exportada ou enviada a um servidor. A extensão não possui backend, publicidade nem análise de público e não captura áudio.
 
 COMPATIBILIDADE
 

@@ -6,11 +6,19 @@ import type {
   CaptureStopMessage,
   PanelFrameRequestMessage,
   PanelPortMessage,
+  PlayerObservationStartMessage,
+  PlayerObservationState,
+  PlayerObservationStopMessage,
   RuntimeMessage,
   SessionState,
   SessionStateMessage,
   SessionStopReason,
 } from '../shared/protocol'
+import {
+  hasCurrentPrivacyConsent,
+  PRIVACY_CONSENT_KEY,
+} from '../shared/protocol'
+import { LatestCaptureStartQueue } from './capture-start-queue'
 
 const ACTIVE_CAPTURE_KEY = 'activeCapture'
 const LAST_SESSION_STATE_KEY = 'lastSessionState'
@@ -20,8 +28,15 @@ interface ActiveCapture {
   sessionId: string
 }
 
+interface PendingCaptureTarget {
+  tabId: number
+  windowId: number
+}
+
 let activeCapture: ActiveCapture | null = null
-let actionClickInFlight = false
+let pendingCaptureTarget: PendingCaptureTarget | null = null
+let actionClickGeneration = 0
+const captureStartQueue = new LatestCaptureStartQueue<chrome.tabs.Tab>()
 const panelPorts = new Set<chrome.runtime.Port>()
 let pendingPanelClose: ReturnType<typeof globalThis.setTimeout> | null = null
 
@@ -73,6 +88,46 @@ async function publishSessionState(state: SessionState): Promise<void> {
   await chrome.runtime.sendMessage(message).catch(() => undefined)
 }
 
+async function hasPrivacyConsent(): Promise<boolean> {
+  const stored = await chrome.storage.local.get(PRIVACY_CONSENT_KEY)
+  return hasCurrentPrivacyConsent(stored[PRIVACY_CONSENT_KEY])
+}
+
+async function startPlayerObservation(
+  tabId: number,
+  sessionId: string,
+): Promise<void> {
+  const message: PlayerObservationStartMessage = {
+    type: 'player:observation:start',
+    sessionId,
+  }
+  await chrome.tabs.sendMessage(tabId, message).catch(() => undefined)
+}
+
+async function stopPlayerObservation(
+  tabId: number,
+  sessionId: string,
+): Promise<void> {
+  const message: PlayerObservationStopMessage = {
+    type: 'player:observation:stop',
+    sessionId,
+  }
+  await chrome.tabs.sendMessage(tabId, message).catch(() => undefined)
+}
+
+async function getPlayerObservationState(
+  tabId: number | undefined,
+): Promise<PlayerObservationState> {
+  if (tabId === undefined || !(await hasPrivacyConsent())) {
+    return { sessionId: null }
+  }
+
+  const capture = await getActiveCapture()
+  return {
+    sessionId: capture?.tabId === tabId ? capture.sessionId : null,
+  }
+}
+
 function isSupportedWatchPage(url: string | undefined): boolean {
   if (!url) {
     return false
@@ -104,11 +159,11 @@ async function ensureOffscreenDocument(): Promise<void> {
   })
 }
 
-async function stopCapture(reason: SessionStopReason): Promise<void> {
+async function stopActiveCapture(reason: SessionStopReason): Promise<boolean> {
   const capture = await getActiveCapture()
 
   if (capture === null) {
-    return
+    return false
   }
 
   const message: CaptureStopMessage = {
@@ -119,15 +174,45 @@ async function stopCapture(reason: SessionStopReason): Promise<void> {
   }
 
   await setActiveCapture(null)
-  await chrome.runtime.sendMessage(message).catch(() => undefined)
+  await Promise.all([
+    chrome.runtime.sendMessage(message).catch(() => undefined),
+    stopPlayerObservation(capture.tabId, capture.sessionId),
+  ])
   await publishSessionState(
     reason === 'manual'
       ? { status: 'idle', sessionId: null }
       : { status: 'idle', reason: 'capture_stopped', sessionId: null },
   )
+  return true
+}
+
+async function cancelCapture(reason: SessionStopReason): Promise<void> {
+  captureStartQueue.cancel()
+  pendingCaptureTarget = null
+  await stopActiveCapture(reason)
+}
+
+async function cancelCaptureForTab(
+  tabId: number,
+  reason: SessionStopReason,
+): Promise<void> {
+  if (captureStartQueue.latestTarget()?.id === tabId) {
+    await cancelCapture(reason)
+    return
+  }
+
+  const capture = await getActiveCapture()
+
+  if (capture?.tabId === tabId) {
+    await stopActiveCapture(reason)
+  }
 }
 
 async function requestCurrentFrame(): Promise<void> {
+  if (!(await hasPrivacyConsent())) {
+    return
+  }
+
   const capture = await getActiveCapture()
 
   if (!capture) {
@@ -153,6 +238,7 @@ async function handleCaptureEnded(message: CaptureEndedMessage): Promise<void> {
   }
 
   await setActiveCapture(null)
+  await stopPlayerObservation(capture.tabId, capture.sessionId)
 }
 
 async function handleOffscreenSessionState(
@@ -171,38 +257,70 @@ async function handleOffscreenSessionState(
   await publishSessionState(message.state)
 }
 
-async function handleActionClick(tab: chrome.tabs.Tab): Promise<void> {
+async function captureRequestMayContinue(generation: number): Promise<boolean> {
+  if (!captureStartQueue.isCurrent(generation)) {
+    return false
+  }
+
+  const consented = await hasPrivacyConsent()
+  return consented && captureStartQueue.isCurrent(generation)
+}
+
+async function startCaptureForTab(
+  tab: chrome.tabs.Tab,
+  generation: number,
+): Promise<void> {
   if (tab.id === undefined) {
     return
   }
 
   const tabId = tab.id
-  const openPanelPromise = chrome.sidePanel.open({ windowId: tab.windowId })
-
-  if (!isSupportedWatchPage(tab.url)) {
-    await stopCapture('navigation')
-    await openPanelPromise
-    await publishSessionState({
-      status: 'suspended',
-      reason: 'unsupported_page',
-      sessionId: null,
-    })
-    return
-  }
-
   const sessionId = crypto.randomUUID()
-  const streamIdPromise = chrome.tabCapture.getMediaStreamId({ targetTabId: tabId })
 
   try {
-    const [streamId] = await Promise.all([streamIdPromise, ensureOffscreenDocument()])
-    const previousCapture = await getActiveCapture()
+    if (!(await captureRequestMayContinue(generation))) {
+      return
+    }
 
-    if (previousCapture !== null) {
-      await stopCapture('replaced')
+    if (!isSupportedWatchPage(tab.url)) {
+      await stopActiveCapture('navigation')
+
+      if (captureStartQueue.isCurrent(generation)) {
+        await publishSessionState({
+          status: 'suspended',
+          reason: 'unsupported_page',
+          sessionId: null,
+        })
+      }
+      return
+    }
+
+    await stopActiveCapture('replaced')
+
+    if (!(await captureRequestMayContinue(generation))) {
+      return
+    }
+
+    const streamIdPromise = chrome.tabCapture.getMediaStreamId({ targetTabId: tabId })
+    const [streamId] = await Promise.all([streamIdPromise, ensureOffscreenDocument()])
+
+    if (!(await captureRequestMayContinue(generation))) {
+      return
     }
 
     await setActiveCapture({ tabId, sessionId })
+
+    if (!(await captureRequestMayContinue(generation))) {
+      await stopActiveCapture('manual')
+      return
+    }
+
     await publishSessionState({ status: 'starting', sessionId })
+
+    if (!(await captureRequestMayContinue(generation))) {
+      await stopActiveCapture('manual')
+      return
+    }
 
     const message: CaptureStartMessage = {
       type: 'capture:start',
@@ -212,38 +330,110 @@ async function handleActionClick(tab: chrome.tabs.Tab): Promise<void> {
     }
 
     await chrome.runtime.sendMessage(message)
+
+    if (!(await captureRequestMayContinue(generation))) {
+      await stopActiveCapture('manual')
+      return
+    }
+
+    await startPlayerObservation(tabId, sessionId)
   } catch (error) {
     const capture = await getActiveCapture()
 
     if (capture?.sessionId === sessionId) {
-      await setActiveCapture(null)
+      await stopActiveCapture('manual')
+    } else {
+      await stopPlayerObservation(tabId, sessionId)
+    }
+
+    if (!captureStartQueue.isCurrent(generation)) {
+      return
     }
 
     console.error('Unable to start tab capture.', error)
-    await openPanelPromise.catch(() => undefined)
     await publishSessionState({
       status: 'error',
       sessionId: null,
       message: t('captureFailed'),
     })
-  } finally {
+  }
+}
+
+function requestCaptureStart(tab: chrome.tabs.Tab): Promise<void> {
+  return captureStartQueue.request(tab, ({ target, generation }) =>
+    startCaptureForTab(target, generation),
+  )
+}
+
+async function handleActionClick(
+  tab: chrome.tabs.Tab,
+  generation: number,
+): Promise<void> {
+  const openPanelPromise = chrome.sidePanel.open({ windowId: tab.windowId })
+
+  if (tab.id === undefined) {
     await openPanelPromise
+    return
+  }
+
+  const consented = await hasPrivacyConsent()
+
+  if (generation !== actionClickGeneration) {
+    await openPanelPromise
+    return
+  }
+
+  if (!consented) {
+    await cancelCapture('manual')
+
+    if (generation !== actionClickGeneration) {
+      await openPanelPromise
+      return
+    }
+
+    pendingCaptureTarget = {
+      tabId: tab.id,
+      windowId: tab.windowId,
+    }
+    await publishSessionState({ status: 'idle', sessionId: null })
+    await openPanelPromise
+    return
+  }
+
+  pendingCaptureTarget = null
+  await Promise.all([requestCaptureStart(tab), openPanelPromise])
+}
+
+async function acceptConsentAndStart(): Promise<void> {
+  if (!(await hasPrivacyConsent())) {
+    return
+  }
+
+  const target = pendingCaptureTarget
+  pendingCaptureTarget = null
+
+  let tab: chrome.tabs.Tab | undefined
+
+  if (target) {
+    tab = await chrome.tabs.get(target.tabId).catch(() => undefined)
+  } else {
+    const tabs = await chrome.tabs.query({ active: true, lastFocusedWindow: true })
+    tab = tabs[0]
+  }
+
+  if (tab) {
+    await requestCaptureStart(tab)
   }
 }
 
 chrome.action.onClicked.addListener((tab) => {
-  if (actionClickInFlight) {
-    void chrome.sidePanel.open({ windowId: tab.windowId }).catch(() => undefined)
-    return
-  }
-
-  actionClickInFlight = true
-  void handleActionClick(tab).finally(() => {
-    actionClickInFlight = false
+  const generation = ++actionClickGeneration
+  void handleActionClick(tab, generation).catch((error: unknown) => {
+    console.error('Unable to handle the extension action.', error)
   })
 })
 
-chrome.runtime.onMessage.addListener((message: RuntimeMessage, _sender, sendResponse) => {
+chrome.runtime.onMessage.addListener((message: RuntimeMessage, sender, sendResponse) => {
   if (message.type === 'session:state' && message.target === 'service-worker') {
     void handleOffscreenSessionState(message).then(
       () => sendResponse(),
@@ -256,6 +446,14 @@ chrome.runtime.onMessage.addListener((message: RuntimeMessage, _sender, sendResp
     void handleCaptureEnded(message).then(
       () => sendResponse(),
       () => sendResponse(),
+    )
+    return true
+  }
+
+  if (message.type === 'player:observation:ready') {
+    void getPlayerObservationState(sender.tab?.id).then(
+      (state) => sendResponse(state),
+      () => sendResponse({ sessionId: null } satisfies PlayerObservationState),
     )
     return true
   }
@@ -275,7 +473,11 @@ chrome.runtime.onConnect.addListener((port) => {
     if (message.type === 'panel:ready') {
       void requestCurrentFrame()
     } else if (message.type === 'panel:stop') {
-      void stopCapture('manual')
+      void cancelCapture('manual')
+    } else if (message.type === 'panel:accept-and-start') {
+      void acceptConsentAndStart()
+    } else if (message.type === 'panel:cancel-consent') {
+      pendingCaptureTarget = null
     }
   })
 
@@ -287,18 +489,14 @@ chrome.runtime.onConnect.addListener((port) => {
       pendingPanelClose = null
 
       if (panelPorts.size === 0) {
-        void stopCapture('panel_closed')
+        void cancelCapture('panel_closed')
       }
     }, PANEL_DISCONNECT_GRACE_MS)
   })
 })
 
 chrome.tabs.onRemoved.addListener((tabId) => {
-  void getActiveCapture().then((capture) => {
-    if (tabId === capture?.tabId) {
-      void stopCapture('tab_closed')
-    }
-  })
+  void cancelCaptureForTab(tabId, 'tab_closed')
 })
 
 chrome.tabs.onUpdated.addListener((tabId, changeInfo) => {
@@ -306,9 +504,22 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo) => {
     return
   }
 
-  void getActiveCapture().then((capture) => {
-    if (tabId === capture?.tabId) {
-      void stopCapture('navigation')
-    }
-  })
+  void cancelCaptureForTab(tabId, 'navigation')
+})
+
+chrome.storage.onChanged.addListener((changes, areaName) => {
+  if (
+    areaName === 'local' &&
+    PRIVACY_CONSENT_KEY in changes &&
+    !hasCurrentPrivacyConsent(changes[PRIVACY_CONSENT_KEY]?.newValue)
+  ) {
+    pendingCaptureTarget = null
+    void cancelCapture('manual')
+  }
+})
+
+void hasPrivacyConsent().then((consented) => {
+  if (!consented) {
+    void cancelCapture('manual')
+  }
 })

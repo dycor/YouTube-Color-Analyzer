@@ -7,6 +7,9 @@ import {
 } from '../shared/i18n'
 import {
   DEFAULT_PANEL_SETTINGS,
+  hasCurrentPrivacyConsent,
+  PRIVACY_CONSENT_KEY,
+  PRIVACY_CONSENT_VERSION,
   type Channel,
   type DisplayScopeFrame,
   type PanelPortMessage,
@@ -38,6 +41,58 @@ app.innerHTML = `
   <main class="app-shell">
     <div class="ambient-orbit ambient-orbit-one" aria-hidden="true"></div>
     <div class="ambient-orbit ambient-orbit-two" aria-hidden="true"></div>
+
+    <section
+      class="consent-gate"
+      id="consent-gate"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="consent-title"
+    >
+      <div class="consent-card">
+        <div class="consent-card-heading">
+          <div class="brand-sigil consent-sigil" aria-hidden="true">
+            <svg viewBox="0 0 48 48" focusable="false">
+              <path d="M8 27.5c5.5-10 13.5-15 24-15 4.4 0 7.5 3.1 7.5 7.5v8c0 4.4-3.1 7.5-7.5 7.5H17" />
+              <circle cx="10" cy="27.5" r="2.5" />
+              <path d="m17 35.5 5.5-5.5" />
+            </svg>
+          </div>
+          <div>
+            <p class="eyebrow">PRIVACY // LOCAL</p>
+            <h2 id="consent-title">${t('consentTitle')}</h2>
+          </div>
+        </div>
+
+        <p class="consent-intro">${t('consentIntro')}</p>
+        <ul class="consent-data-list">
+          <li>${t('consentPageData')}</li>
+          <li>${t('consentVisualData')}</li>
+          <li>${t('consentOverlayData')}</li>
+        </ul>
+        <p>${t('consentLocal')}</p>
+        <p>${t('consentStorage')}</p>
+        <p>${t('consentStop')}</p>
+
+        <p class="consent-feedback" id="consent-feedback" role="status" hidden></p>
+
+        <div class="consent-actions">
+          <button class="consent-action" id="cancel-consent" type="button">
+            ${t('consentCancel')}
+          </button>
+          <button class="consent-action" id="accept-consent" type="button">
+            ${t('consentAccept')}
+          </button>
+        </div>
+
+        <a
+          class="privacy-link consent-privacy-link"
+          href="https://dycor.github.io/YouTube-Color-Analyzer/privacy/"
+          target="_blank"
+          rel="noreferrer"
+        >${t('privacyPolicy')}</a>
+      </div>
+    </section>
 
     <header class="hud-header">
       <div class="brand-lockup">
@@ -192,7 +247,13 @@ app.innerHTML = `
     <footer>
       <span class="privacy-dot" aria-hidden="true"></span>
       <span>${t('privacy')}</span>
-      <span class="version-label">V0.1</span>
+      <a
+        class="privacy-link"
+        href="https://dycor.github.io/YouTube-Color-Analyzer/privacy/"
+        target="_blank"
+        rel="noreferrer"
+      >${t('privacyPolicy')}</a>
+      <span class="version-label">V1.0.0</span>
     </footer>
   </main>
 `
@@ -216,6 +277,10 @@ const paradeMode = requiredElement<HTMLSelectElement>('#parade-mode')
 const waveformColorized = requiredElement<HTMLInputElement>('#waveform-colorized')
 const skinToneLine = requiredElement<HTMLInputElement>('#skin-tone-line')
 const stopButton = requiredElement<HTMLButtonElement>('#stop-analysis')
+const consentGate = requiredElement<HTMLElement>('#consent-gate')
+const consentFeedback = requiredElement<HTMLElement>('#consent-feedback')
+const acceptConsentButton = requiredElement<HTMLButtonElement>('#accept-consent')
+const cancelConsentButton = requiredElement<HTMLButtonElement>('#cancel-consent')
 
 let settings: PanelSettings = structuredClone(DEFAULT_PANEL_SETTINGS)
 let currentFrame: DisplayScopeFrame | null = null
@@ -413,6 +478,34 @@ skinToneLine.addEventListener('change', () => {
 
 const port = chrome.runtime.connect({ name: PANEL_PORT })
 
+acceptConsentButton.addEventListener('click', async () => {
+  consentFeedback.hidden = true
+  acceptConsentButton.disabled = true
+  cancelConsentButton.disabled = true
+
+  try {
+    await chrome.storage.local.set({
+      [PRIVACY_CONSENT_KEY]: PRIVACY_CONSENT_VERSION,
+    })
+    consentGate.hidden = true
+    const message: PanelPortMessage = { type: 'panel:accept-and-start' }
+    port.postMessage(message)
+  } catch {
+    consentFeedback.textContent = t('consentError')
+    consentFeedback.hidden = false
+  } finally {
+    acceptConsentButton.disabled = false
+    cancelConsentButton.disabled = false
+  }
+})
+
+cancelConsentButton.addEventListener('click', () => {
+  const message: PanelPortMessage = { type: 'panel:cancel-consent' }
+  port.postMessage(message)
+  consentFeedback.textContent = t('consentCancelled')
+  consentFeedback.hidden = false
+})
+
 stopButton.addEventListener('click', () => {
   const message: PanelPortMessage = { type: 'panel:stop' }
   port.postMessage(message)
@@ -449,9 +542,10 @@ chrome.runtime.onMessage.addListener((message: RuntimeMessage) => {
 const resizeObserver = new ResizeObserver(render)
 resizeObserver.observe(canvas)
 
-const [storedSettings, storedSession] = await Promise.all([
+const [storedSettings, storedSession, storedConsent] = await Promise.all([
   chrome.storage.local.get('panelSettings'),
   chrome.storage.session.get('lastSessionState'),
+  chrome.storage.local.get(PRIVACY_CONSENT_KEY),
 ])
 settings = mergeSettings(
   storedSettings.panelSettings as Partial<PanelSettings> | undefined,
@@ -465,6 +559,10 @@ if (storedSession.lastSessionState) {
       typeof storedState.sessionId === 'string' ? storedState.sessionId : null,
   }
 }
+
+consentGate.hidden = hasCurrentPrivacyConsent(
+  storedConsent[PRIVACY_CONSENT_KEY],
+)
 
 render()
 

@@ -1,6 +1,6 @@
 # Fiche Chrome Web Store — Français
 
-> Document prêt à copier dans le Dashboard. Remplacer tous les champs entre crochets avant la soumission.
+> Document prêt à copier dans le Dashboard.
 
 ## Informations générales
 
@@ -8,15 +8,15 @@
 - **Résumé court** : Analysez localement les couleurs d’une vidéo YouTube avec Parade YRGB/RGB, Waveform et Vecteurscope Rec.709.
 - **Langue** : français
 - **Catégorie recommandée** : Productivité
-- **URL d’accueil** : `[URL PUBLIQUE DU PROJET À COMPLÉTER]`
-- **URL d’assistance** : `[URL PUBLIQUE DE SUPPORT À COMPLÉTER]`
-- **URL de confidentialité** : `[URL PUBLIQUE DE PRIVACY.md À COMPLÉTER]`
+- **URL d’accueil** : `https://dycor.github.io/YouTube-Color-Analyzer/fr/`
+- **URL d’assistance** : `https://dycor.github.io/YouTube-Color-Analyzer/fr/support/`
+- **URL de confidentialité** : `https://dycor.github.io/YouTube-Color-Analyzer/fr/privacy/` (`PRIVACY.fr.md`)
 
 ## Divulgation visible relative aux données
 
 Placer ce texte près du début de la description, sans le masquer dans une section secondaire :
 
-> **Traitement des données :** sur les pages YouTube, l’extension lit localement l’adresse de la page, l’identifiant vidéo et l’état du lecteur afin de détecter et cadrer une vidéo compatible. Lorsque vous acceptez la divulgation dans l’extension puis démarrez l’analyse, elle capture temporairement le rendu visuel de l’onglet actif, sans audio, et recadre la zone vidéo pour calculer les instruments. Les pixels, l’adresse de la page et l’état de lecture restent dans votre navigateur. Aucune image ou donnée de lecture n’est envoyée à un serveur, à l’éditeur ou à un tiers. Les préférences d’affichage et la version du consentement sont conservées dans le stockage local de Chrome. Un identifiant de capture et le dernier état technique sont conservés temporairement dans le stockage de session et disparaissent au plus tard à la fin de la session du navigateur.
+> **Traitement des données :** ce n’est qu’après votre acceptation de la divulgation en vigueur dans l’extension et le démarrage explicite de l’analyse que celle-ci lit localement l’adresse de la page YouTube, l’identifiant vidéo et l’état du lecteur nécessaires pour détecter et cadrer une vidéo compatible. Elle observe ce contexte uniquement pendant la session d’analyse active. L’extension capture temporairement le rendu visuel de l’onglet actif, sans audio, et recadre la zone vidéo pour calculer les instruments. « Arrêter », la fermeture du panneau latéral, une navigation ou la fin de la capture arrêtent immédiatement l’observation du contexte et la capture. Les pixels, l’adresse de la page et l’état de lecture restent dans votre navigateur. Aucune image ou donnée de lecture n’est envoyée à un serveur, à l’éditeur ou à un tiers. Les préférences d’affichage et la version du consentement sont conservées dans le stockage local de Chrome. Un identifiant de capture et le dernier état technique sont conservés temporairement dans le stockage de session et disparaissent au plus tard à la fin de la session du navigateur.
 
 ## Description détaillée
 
@@ -26,9 +26,9 @@ Il s’adresse aux monteurs, coloristes et créateurs qui souhaitent étudier un
 
 TRAITEMENT DES DONNÉES
 
-Sur les pages YouTube, l’extension lit localement l’adresse de la page, l’identifiant vidéo et l’état du lecteur afin de détecter et cadrer une vidéo compatible. Lorsque vous acceptez la divulgation dans l’extension puis démarrez l’analyse, elle capture temporairement le rendu visuel de l’onglet actif, sans audio, et recadre la zone vidéo pour calculer les instruments.
+Ce n’est qu’après votre acceptation de la divulgation en vigueur dans l’extension et le démarrage explicite de l’analyse que celle-ci lit localement l’adresse de la page YouTube, l’identifiant vidéo et l’état du lecteur nécessaires pour détecter et cadrer une vidéo compatible. Elle observe ce contexte uniquement pendant la session d’analyse active. L’extension capture temporairement le rendu visuel de l’onglet actif, sans audio, et recadre la zone vidéo pour calculer les instruments.
 
-Les pixels, l’adresse de la page et l’état de lecture restent dans votre navigateur. Aucune image ou donnée de lecture n’est envoyée à un serveur, à l’éditeur ou à un tiers. Les préférences d’affichage et la version du consentement sont conservées dans le stockage local de Chrome. Un identifiant de capture et le dernier état technique sont conservés temporairement dans le stockage de session et disparaissent au plus tard à la fin de la session du navigateur.
+« Arrêter », la fermeture du panneau latéral, une navigation ou la fin de la capture arrêtent immédiatement l’observation du contexte et la capture. Les pixels, l’adresse de la page et l’état de lecture restent dans votre navigateur. Aucune image ou donnée de lecture n’est envoyée à un serveur, à l’éditeur ou à un tiers. Les préférences d’affichage et la version du consentement sont conservées dans le stockage local de Chrome. Un identifiant de capture et le dernier état technique sont conservés temporairement dans le stockage de session et disparaissent au plus tard à la fin de la session du navigateur.
 
 INSTRUMENTS INCLUS
 
@@ -44,7 +44,7 @@ Pendant la lecture, les instruments sont actualisés en direct. Lorsque la vidé
 
 CONFIDENTIALITÉ
 
-Tout le calcul est réalisé sur l’appareil. Les pixels vidéo restent uniquement dans la mémoire de travail locale ; le dernier recadrage peut y rester jusqu’à son remplacement ou la destruction du document hors écran. Aucune image n’est enregistrée dans un stockage persistant, exportée ou envoyée vers un serveur. L’extension ne possède aucun backend, aucune publicité, aucun outil d’analyse d’audience et ne capture pas l’audio.
+Tout le calcul est réalisé sur l’appareil. Les pixels vidéo restent uniquement dans la mémoire de travail locale pendant la session d’analyse active. À l’arrêt, la source vidéo est libérée et le canvas est réinitialisé à 1 × 1 pixel. Aucune image n’est enregistrée dans un stockage persistant, exportée ou envoyée vers un serveur. L’extension ne possède aucun backend, aucune publicité, aucun outil d’analyse d’audience et ne capture pas l’audio.
 
 COMPATIBILITÉ
 

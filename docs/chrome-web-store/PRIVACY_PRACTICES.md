@@ -1,8 +1,8 @@
 # Chrome Web Store — Privacy practices
 
-Valeurs proposées pour le Developer Dashboard, basées sur le code audité le 17 juillet 2026.
+Valeurs proposées pour le Developer Dashboard, basées sur le code audité le 22 juillet 2026.
 
-> **Ne pas soumettre tant que la divulgation et le consentement décrits dans [`DATA_DISCLOSURE.md`](./DATA_DISCLOSURE.md) ne sont pas implémentés.** Vérifier à nouveau ces réponses après toute modification du code.
+> La divulgation et le consentement décrits dans [`DATA_DISCLOSURE.md`](./DATA_DISCLOSURE.md) sont implémentés. Vérifier à nouveau ces réponses après toute modification du code.
 
 ## Finalité unique
 
@@ -18,11 +18,11 @@ Valeurs proposées pour le Developer Dashboard, basées sur le code audité le 1
 
 ### `tabCapture`
 
-> Captures the visual output of the YouTube tab explicitly selected by the user, without audio, so the extension can crop the visible video area and calculate the Parade, Waveform, and Vectorscope locally. Captured pixels are not written to persistent storage or sent to a server.
+> Captures the visual output of the YouTube tab explicitly selected by the user, without audio, so the extension can crop the visible video area and calculate the Parade, Waveform, and Vectorscope locally. Capture is limited to the active analysis session. It stops immediately when the user selects Stop, navigates to an unsupported page, closes the tab, or the capture ends; closing the side panel triggers the same stop after a short technical grace period that tolerates a panel reload. Captured pixels are not written to persistent storage or sent to a server.
 
 ### `offscreen`
 
-> Creates a Chrome offscreen document to consume the user-initiated tab capture stream, crop video frames with an offscreen canvas, and run the local analysis worker while the side panel displays the results.
+> Creates a Chrome offscreen document to consume the user-initiated tab capture stream, crop video frames with an offscreen canvas, and run the local analysis worker while the active side-panel session displays the results. When that session stops, the video source is released and the canvas is reset to 1 × 1 pixel.
 
 ### `sidePanel`
 
@@ -32,17 +32,9 @@ Valeurs proposées pour le Developer Dashboard, basées sur le code audité le 1
 
 > Stores display preferences and the accepted disclosure version in Chrome local storage, plus temporary capture/session state in Chrome session storage. It does not store video images.
 
-### `activeTab`
-
-**Action avant soumission : auditer puis supprimer cette permission si les tests passent sans elle.** Le code n’appelle actuellement aucune API qui exige clairement `activeTab`. La règle de permission minimale interdit de conserver une permission « au cas où ».
-
-Si elle reste nécessaire après preuve par un test, utiliser :
-
-> Allows the extension, after an explicit toolbar click, to inspect the currently selected tab only long enough to determine whether it is a supported YouTube watch page and initiate the requested capture.
-
 ### Accès hôte `https://www.youtube.com/*`
 
-> Runs the local content script on YouTube to detect internal single-page navigation and read only the player state and geometry needed to locate, crop, synchronize, suspend, and stop the requested color analysis. Video capture starts only on a supported `/watch` page after user consent and an explicit action.
+> Allows the local content script on YouTube to activate only after user consent and only for an active analysis session, detect internal single-page navigation, and read only the player state and geometry needed to locate, crop, synchronize, suspend, and stop the requested color analysis. Player-context observation and video capture stop immediately when the user selects Stop, navigates to an unsupported page, closes the tab, or the capture ends. Closing the side panel triggers the same stop after a short technical grace period that tolerates a panel reload. Video capture starts only on a supported `/watch` page after user consent and an explicit action.
 
 ## Code distant
 
@@ -69,7 +61,7 @@ Les noms exacts peuvent varier légèrement dans le Dashboard. Déclarer au mini
 
 ### Texte anglais à copier
 
-> On YouTube pages, the extension locally reads the current page address, video identifier, playback state and position, player mode, visibility, and dimensions to detect and frame a compatible video. After the user accepts the in-product disclosure and explicitly starts analysis, the extension temporarily captures the visual output of the selected tab without audio, crops the visible video area, and processes its pixels locally to calculate color-analysis scopes. Captured pixels and page/playback information are not sent to the publisher or any third party. No video image is stored persistently. Only interface preferences and technical consent/session state are stored locally in Chrome.
+> Only after the user accepts the current in-product disclosure and explicitly starts analysis does the extension locally read the YouTube page address, video identifier, playback state and position, player mode, visibility, and dimensions needed to detect and frame a compatible video. This player-context observation occurs only during the active analysis session. The extension temporarily captures the visual output of the selected tab without audio, crops the visible video area, and processes its pixels locally to calculate color-analysis scopes. Selecting Stop, navigating to an unsupported page, closing the tab, or the capture ending immediately stops both observation and capture. Closing the side panel triggers the same stop after a short technical grace period that tolerates a panel reload. Captured pixels and page/playback information are not sent to the publisher or any third party. No video image is stored persistently. Only interface preferences and technical consent/session state are stored locally in Chrome.
 
 ## Certifications Limited Use
 
@@ -87,7 +79,7 @@ Les affirmations suivantes doivent rester vraies dans le code au moment de la so
 
 - Fichier français : [`../../PRIVACY.fr.md`](../../PRIVACY.fr.md)
 - Fichier anglais : [`../../PRIVACY.md`](../../PRIVACY.md)
-- URL à saisir : `[URL HTTPS PUBLIQUE À COMPLÉTER]`
+- URL à saisir : `https://dycor.github.io/YouTube-Color-Analyzer/privacy/`
 
 La page doit être accessible sans connexion et rester disponible pendant toute la publication de l’extension.
 

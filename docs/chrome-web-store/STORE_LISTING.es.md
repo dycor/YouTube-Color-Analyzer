@@ -1,6 +1,6 @@
 # Ficha de Chrome Web Store — Español
 
-> Contenido listo para copiar en el Dashboard. Sustituye todos los campos entre corchetes antes de enviar la extensión.
+> Contenido listo para copiar en el Dashboard.
 
 ## Información general
 
@@ -8,15 +8,15 @@
 - **Resumen corto**: Analiza localmente los colores de un vídeo de YouTube con Parade YRGB/RGB, Forma de onda y Vectorscopio Rec.709.
 - **Idioma**: español
 - **Categoría recomendada**: Productividad
-- **URL de la página principal**: `[URL PÚBLICA DEL PROYECTO PENDIENTE]`
-- **URL de soporte**: `[URL PÚBLICA DE SOPORTE PENDIENTE]`
-- **URL de la política de privacidad**: `[URL PÚBLICA DE PRIVACY.es.md PENDIENTE]`
+- **URL de la página principal**: `https://dycor.github.io/YouTube-Color-Analyzer/es/`
+- **URL de soporte**: `https://dycor.github.io/YouTube-Color-Analyzer/es/support/`
+- **URL de la política de privacidad**: `https://dycor.github.io/YouTube-Color-Analyzer/es/privacy/`
 
 ## Divulgación visible relativa a los datos
 
 Coloca este texto cerca del principio de la descripción, sin ocultarlo en una sección secundaria:
 
-> **Tratamiento de datos:** en las páginas de YouTube, la extensión lee localmente la dirección de la página, el identificador del vídeo y el estado del reproductor para detectar y encuadrar un vídeo compatible. Después de que aceptes la divulgación en la extensión e inicies el análisis, captura temporalmente la salida visual de la pestaña activa, sin audio, y recorta el área del vídeo para calcular los instrumentos. Los píxeles, la dirección de la página y el estado de reproducción permanecen en tu navegador. Ninguna imagen ni dato de reproducción se envía a un servidor, al editor o a terceros. Las preferencias de visualización y la versión del consentimiento se guardan en el almacenamiento local de Chrome. Un identificador de captura y el último estado técnico se conservan temporalmente en el almacenamiento de sesión y desaparecen, como máximo, al finalizar la sesión del navegador.
+> **Tratamiento de datos:** solo después de que aceptes la divulgación vigente en la extensión e inicies explícitamente el análisis, esta lee localmente la dirección de la página de YouTube, el identificador del vídeo y el estado del reproductor necesarios para detectar y encuadrar un vídeo compatible. Este contexto se observa únicamente durante la sesión de análisis activa. La extensión captura temporalmente la salida visual de la pestaña activa, sin audio, y recorta el área del vídeo para calcular los instrumentos. Seleccionar «Detener», cerrar el panel lateral, navegar a otra página o el fin de la captura detienen de inmediato tanto la observación del contexto como la captura. Los píxeles, la dirección de la página y el estado de reproducción permanecen en tu navegador. Ninguna imagen ni dato de reproducción se envía a un servidor, al editor o a terceros. Las preferencias de visualización y la versión del consentimiento se guardan en el almacenamiento local de Chrome. Un identificador de captura y el último estado técnico se conservan temporalmente en el almacenamiento de sesión y desaparecen, como máximo, al finalizar la sesión del navegador.
 
 ## Descripción detallada
 
@@ -26,9 +26,9 @@ Está diseñado para editores, coloristas y creadores que quieran estudiar un v�
 
 TRATAMIENTO DE DATOS
 
-En las páginas de YouTube, la extensión lee localmente la dirección de la página, el identificador del vídeo y el estado del reproductor para detectar y encuadrar un vídeo compatible. Después de que aceptes la divulgación en la extensión e inicies el análisis, captura temporalmente la salida visual de la pestaña activa, sin audio, y recorta el área del vídeo para calcular los instrumentos.
+Solo después de que aceptes la divulgación vigente en la extensión e inicies explícitamente el análisis, esta lee localmente la dirección de la página de YouTube, el identificador del vídeo y el estado del reproductor necesarios para detectar y encuadrar un vídeo compatible. Este contexto se observa únicamente durante la sesión de análisis activa. La extensión captura temporalmente la salida visual de la pestaña activa, sin audio, y recorta el área del vídeo para calcular los instrumentos.
 
-Los píxeles, la dirección de la página y el estado de reproducción permanecen en tu navegador. Ninguna imagen ni dato de reproducción se envía a un servidor, al editor o a terceros. Las preferencias de visualización y la versión del consentimiento se guardan en el almacenamiento local de Chrome. Un identificador de captura y el último estado técnico se conservan temporalmente en el almacenamiento de sesión y desaparecen, como máximo, al finalizar la sesión del navegador.
+Seleccionar «Detener», cerrar el panel lateral, navegar a otra página o el fin de la captura detienen de inmediato tanto la observación del contexto como la captura. Los píxeles, la dirección de la página y el estado de reproducción permanecen en tu navegador. Ninguna imagen ni dato de reproducción se envía a un servidor, al editor o a terceros. Las preferencias de visualización y la versión del consentimiento se guardan en el almacenamiento local de Chrome. Un identificador de captura y el último estado técnico se conservan temporalmente en el almacenamiento de sesión y desaparecen, como máximo, al finalizar la sesión del navegador.
 
 INSTRUMENTOS INCLUIDOS
 
@@ -44,7 +44,7 @@ Durante la reproducción, los instrumentos se actualizan en directo. Cuando el v
 
 PRIVACIDAD
 
-Todos los cálculos se realizan en el dispositivo. Los píxeles del vídeo permanecen únicamente en la memoria de trabajo local; el último recorte puede permanecer allí hasta que se sustituya o se destruya el documento fuera de pantalla. Ninguna imagen se almacena de forma persistente, se exporta ni se envía a un servidor. La extensión no tiene backend, publicidad ni análisis de audiencia, y no captura el audio.
+Todos los cálculos se realizan en el dispositivo. Los píxeles del vídeo permanecen únicamente en la memoria de trabajo local durante la sesión de análisis activa. Cuando se detiene el análisis, se libera la fuente de vídeo y el lienzo se restablece a 1 × 1 píxel. Ninguna imagen se almacena de forma persistente, se exporta ni se envía a un servidor. La extensión no tiene backend, publicidad ni análisis de audiencia, y no captura el audio.
 
 COMPATIBILIDAD
 

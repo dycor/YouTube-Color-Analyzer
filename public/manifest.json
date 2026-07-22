@@ -36,7 +36,6 @@
   ],
   "host_permissions": ["https://www.youtube.com/*"],
   "permissions": [
-    "activeTab",
     "offscreen",
     "sidePanel",
     "storage",

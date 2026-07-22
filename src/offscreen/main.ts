@@ -28,6 +28,10 @@ import type {
   SessionStopReason,
 } from '../shared/protocol'
 import { LiveAnalysisScheduler } from '../shared/live-analysis-scheduler'
+import {
+  releaseAnalysisCanvas,
+  releaseCaptureVideo,
+} from './release-surfaces'
 
 const captureVideo = document.createElement('video')
 const analysisCanvas = new OffscreenCanvas(1, 1)
@@ -116,7 +120,8 @@ function stopTracks(): void {
   }
 
   captureStream = null
-  captureVideo.srcObject = null
+  releaseCaptureVideo(captureVideo)
+  releaseAnalysisCanvas(analysisCanvas)
   pendingDetailedFrame = false
   playerSnapshot = null
   lastFrameMessage = null
@@ -516,6 +521,7 @@ chrome.runtime.onMessage.addListener(
 
     if (
       message.type === 'player:snapshot' &&
+      message.sessionId === analysisRequests.sessionId &&
       sender.tab?.id === activeTabId
     ) {
       const snapshotMessage: PlayerSnapshotMessage = message

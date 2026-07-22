@@ -3,9 +3,10 @@
 [Français](./PRIVACY.fr.md) | **English** | [中文](./PRIVACY.zh-CN.md) | [Español](./PRIVACY.es.md) | [Português](./PRIVACY.pt-BR.md)
 
 Effective date: July 17, 2026  
-Last updated: July 17, 2026
+Last updated: July 22, 2026
 
-Publisher: **[PUBLISHER NAME TO COMPLETE]**  
+Publisher: **Color Analyzer**
+
 Privacy contact: **[dyvyn.7@gmail.com](mailto:dyvyn.7@gmail.com)**
 
 ## 1. Purpose of the extension
@@ -14,7 +15,8 @@ YouTube Color Analyzer is a Chrome extension that locally generates a Parade, Wa
 
 ## 2. Summary
 
-- analysis starts only after the user explicitly clicks the extension icon;
+- analysis starts only after the user explicitly clicks the extension icon and, on first use or after a disclosure update, accepts the in-product data disclosure;
+- page context and player state are observed only during an active analysis session and observation stops when that session ends;
 - visible video pixels are processed locally on the device;
 - audio is not captured;
 - no video image is saved to disk or sent to the publisher;
@@ -29,11 +31,11 @@ During an active analysis session, the extension temporarily captures the visual
 
 The captured output may include elements visibly overlaid on the video, such as captions or player controls. The extension warns about some of these cases because they may affect the measurement.
 
-Raw pixel arrays are held in working memory for the time needed to calculate a measurement and their references are then released. The local canvas may retain the latest cropped image in memory until it is replaced by another image or the offscreen document is destroyed. No image is written to persistent storage, added to a history, or transmitted over the Internet.
+Raw pixel arrays are held in working memory for the time needed to calculate a measurement and their references are then released. During an active session, the local canvas may retain the latest cropped image in memory until it is replaced by another image. When capture stops, the canvas is reset to 1 × 1 pixel and the video source is released. No image is written to persistent storage, added to a history, or transmitted over the Internet.
 
 ### 3.2 Page context and player state
 
-A local extension script is present on `youtube.com` pages. It periodically observes page context and player state, including when no capture is active. When there is no analysis session, these messages are ignored and are not stored. To locate the video correctly, handle YouTube's internal navigation, and synchronize measurements, the extension temporarily processes:
+A local extension script is present on `youtube.com` pages, but it remains inactive until the user has accepted the current data disclosure and explicitly starts an analysis. Only during an active analysis session, it periodically observes page context and player state. It stops this observation immediately when the user selects “Stop,” navigates to an unsupported page, closes the tab, or the capture ends. Closing the side panel stops it after a short technical grace period that tolerates a panel reload. It does not observe player context between analysis sessions. To locate the video correctly, detect YouTube's internal navigation, and synchronize measurements during the active session, the extension temporarily processes:
 
 - the current YouTube page address and video identifier;
 - playback time and playing, paused, or seeking state;
@@ -68,12 +70,12 @@ YouTube and Google may process data independently when the user uses their servi
 
 ## 5. Retention and deletion
 
-- **Video pixels**: local working memory; raw arrays are released after calculation, while the latest crop may remain in the canvas until it is replaced or the offscreen document is destroyed.
-- **Player context**: temporary memory, continuously replaced. Local observation continues while the YouTube page remains loaded, but messages are ignored and not stored when no analysis is active.
+- **Video pixels**: local working memory; raw arrays are released after calculation. The latest crop may remain in the canvas only during the active session; on Stop, the canvas is reset to 1 × 1 pixel and the video source is released.
+- **Player context**: temporary memory, continuously replaced only during an active analysis session. Observation does not start before consent and stops immediately when the session ends.
 - **Session state**: the active capture identifier is removed when capture stops; the latest status may remain in Chrome session storage until the browser session ends.
 - **Display preferences and consent version**: Chrome local storage, retained until changed, cleared, or the extension is uninstalled.
 
-The user can stop capture and pixel analysis by selecting “Stop,” closing the panel, leaving the video, or closing the tab. Closing the panel uses a short technical grace period to tolerate a panel reload. On a YouTube page that remains loaded, local player-context observation may continue, but its messages are ignored while no analysis is active. Stored preferences can be removed by clearing the extension's data in Chrome or uninstalling the extension.
+Selecting “Stop,” navigating to an unsupported page, closing the tab, or the capture ending stops capture, pixel analysis, and player-context observation immediately. Closing the side panel triggers the same cleanup after a short technical grace period that tolerates a panel reload. Cleanup resets the analysis canvas to 1 × 1 pixel and releases the video source. No player-context observation occurs before consent or after the active analysis session ends. Stored preferences can be removed by clearing the extension's data in Chrome or uninstalling the extension.
 
 The publisher has no remote copy of this information and therefore cannot access or delete it remotely.
 
@@ -81,12 +83,11 @@ The publisher has no remote copy of this information and therefore cannot access
 
 The extension uses only the permissions required for its purpose:
 
-- **activeTab**: after a user action, verify that the active tab is a compatible YouTube video;
 - **tabCapture**: temporarily capture the visible output of the selected tab, without audio;
 - **offscreen**: receive and analyze the captured stream locally in a Chrome offscreen document;
 - **sidePanel**: display the scopes and their controls in Chrome's side panel;
 - **storage**: retain local preferences, the consent version, and technical session state;
-- **access to `https://www.youtube.com/*`**: detect the YouTube player, its geometry, and its state. Capture itself starts only on a compatible `/watch` page after a user action.
+- **access to `https://www.youtube.com/*`**: during an active analysis session only, detect the YouTube player, its geometry, its state, and navigation away from the selected video. Capture starts only on a compatible `/watch` page after consent and a user action.
 
 ## 7. Security
 

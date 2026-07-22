@@ -2,6 +2,7 @@
 
 - Statut : accepté
 - Date : 2026-07-15
+- Dernière mise à jour : 2026-07-22
 
 ## Contexte
 
@@ -13,14 +14,14 @@ Depuis Chrome 116, un identifiant de flux obtenu par le service worker peut êtr
 
 La première version requiert Google Chrome 116 ou une version ultérieure et utilise le pipeline suivant :
 
-1. le clic sur l'icône de l'extension ouvre le panneau et démarre une session d'analyse pour l'onglet YouTube actif ;
+1. le clic sur l'icône de l'extension ouvre le panneau ; lors de la première utilisation, une divulgation décrit précisément les données traitées et la session ne démarre qu'après consentement explicite ;
 2. le service worker obtient un flux vidéo de l'onglet avec `chrome.tabCapture`, sans demander ni capturer l'audio ;
 3. un script de contenu communique la position et les dimensions visibles du lecteur YouTube ;
 4. un document hors écran recadre le flux sur cette zone et échantillonne les images de mesure au maximum à 15 Hz ;
 5. le document calcule les données des instruments localement ;
 6. seules les données de scopes sont transmises au panneau latéral pour affichage.
 
-Les images brutes ne sont jamais enregistrées, exportées, envoyées vers un serveur ou transmises au panneau latéral.
+Avant ce consentement, le script de contenu n'observe ni l'adresse, ni le lecteur, ni la géométrie de la page. Les images brutes ne sont jamais enregistrées, exportées, envoyées vers un serveur ou transmises au panneau latéral.
 
 La session et ses pistes de capture sont arrêtées lorsque le panneau ferme, lorsque l'utilisateur quitte YouTube ou lorsque l'onglet capturé est fermé.
 
@@ -32,10 +33,10 @@ Les commandes YouTube et les sous-titres appartiennent au rendu visible capturé
 
 ## Conséquences
 
-- Le manifeste doit demander uniquement les permissions nécessaires, notamment `activeTab`, `tabCapture`, `offscreen`, `sidePanel` et `storage`, ainsi qu'un accès limité à YouTube.
+- Le manifeste doit demander uniquement `tabCapture`, `offscreen`, `sidePanel` et `storage`, ainsi qu'un accès hôte limité à YouTube. `activeTab` n'est pas requis par cette architecture.
 - Le recadrage doit convertir correctement les coordonnées CSS du lecteur vers les dimensions réelles du flux capturé, y compris après redimensionnement ou passage en mode cinéma.
 - Le panneau ne doit recevoir que des tableaux de densité, des réglages et des états de session.
-- Une déconnexion du panneau ou une navigation doit libérer immédiatement le flux et les ressources de calcul.
+- Une déconnexion du panneau ou une navigation doit libérer le flux et les ressources de calcul ; le canvas est ramené à une surface de 1 × 1 à l'arrêt pour effacer le dernier recadrage.
 - Les superpositions intégrées directement à l'image par l'auteur de la vidéo restent naturellement incluses dans les mesures.
 
 ## Sources
@@ -43,4 +44,3 @@ Les commandes YouTube et les sous-titres appartiennent au rendu visible capturé
 - [Chrome Extensions — `chrome.tabCapture`](https://developer.chrome.com/docs/extensions/reference/api/tabCapture)
 - [Chrome Extensions — Audio recording and screen capture](https://developer.chrome.com/docs/extensions/how-to/web-platform/screen-capture)
 - [Chrome Extensions — `chrome.sidePanel`](https://developer.chrome.com/docs/extensions/reference/api/sidePanel)
-
