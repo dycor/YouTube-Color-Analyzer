@@ -35,9 +35,17 @@ Do not send screenshots containing personal information, a private account, or c
 - reload the YouTube page if the extension was just updated;
 - try another public video to rule out a source-specific restriction.
 
+### The detached window or export button behaves unexpectedly
+
+- the side panel and detached window share one analysis session;
+- selecting “Stop” in either interface stops capture everywhere;
+- closing only one interface keeps capture running if the other remains open;
+- the export button is available only after pausing the video and receiving a detailed paused frame;
+- trace intensity changes only the rendered trace opacity, not the measured levels.
+
 ### Measurements differ from DaVinci Resolve
 
-Version 1 analyzes the visible SDR output rendered by Chrome. It does not access the original video file, the signal before display rendering, or complete color metadata. The scopes are intended for observation and are not calibrated broadcast measurements.
+Version 1.1 analyzes the visible SDR output rendered by Chrome. It does not access the original video file, the signal before display rendering, or complete color metadata. The scopes are intended for observation and are not calibrated broadcast measurements.
 
 Captions, controls, and other visible overlays may also affect the result.
 
@@ -46,9 +54,9 @@ Captions, controls, and other visible overlays may also affect the result.
 - standard `youtube.com/watch` pages;
 - normal and theater modes;
 - YRGB/RGB Parade, YRGB Waveform, and Rec.709 Vectorscope;
-- live analysis and a more detailed paused frame.
+- live analysis, a detachable analysis window, trace intensity, RGB min/max, and an exportable detailed paused frame.
 
-Version 1 does not support Shorts, YouTube Music, embedded players, fullscreen, the YouTube miniplayer, Picture-in-Picture, or calibrated HDR analysis.
+Version 1.1 does not support Shorts, YouTube Music, embedded players, fullscreen, the YouTube miniplayer, Picture-in-Picture, or calibrated HDR analysis.
 
 ## Report an issue
 

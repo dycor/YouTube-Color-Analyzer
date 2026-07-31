@@ -1,6 +1,6 @@
 # ADR-0007 — Utiliser le panneau latéral de Chrome
 
-- Statut : accepté
+- Statut : accepté, complété par ADR-0022
 - Date : 2026-07-15
 
 ## Contexte
@@ -28,4 +28,4 @@ L'extension utilise le panneau latéral natif de Google Chrome comme interface p
 - L'extension doit demander et configurer la capacité `sidePanel` dans son manifeste Chrome.
 - Le rendu de chaque instrument doit s'adapter à la largeur variable du panneau.
 - Un instrument non affiché n'a pas besoin d'être rendu en continu ; lors de son ouverture, il est recalculé à partir de l'image de mesure courante.
-- La première version ne propose ni fenêtre flottante, ni interface injectée sous le lecteur, ni vue simultanée des trois instruments.
+- Cette décision décrivait la surface principale de la première version. Elle est complétée par l'ADR-0022 : l'extension conserve le panneau latéral comme interface par défaut et propose désormais une fenêtre d'analyse détachable qui partage la même session de capture.

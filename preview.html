@@ -7,9 +7,10 @@
     <script>
       (() => {
         const parameters = new URLSearchParams(window.location.search)
-        document.documentElement.dataset.view =
-          parameters.get('view') === 'window' ? 'window' : 'sidepanel'
+        const previewSurface = parameters.get('view') === 'window' ? 'window' : 'sidepanel'
+        document.documentElement.dataset.view = previewSurface
         const detailed = parameters.get('detailed') === 'true'
+        const traceIntensity = Number(parameters.get('traceIntensity'))
         const sourceWidth = detailed ? 1920 : 640
         const sourceHeight = detailed ? 1080 : 360
         const xBins = detailed ? 1920 : 512
@@ -162,7 +163,7 @@
             waveformChannels: { y: false, r: true, g: true, b: true },
             waveformColorized: true,
             showSkinToneLine: true,
-            traceIntensity: 40,
+            traceIntensity: Number.isFinite(traceIntensity) ? traceIntensity : 40,
           },
         }
 

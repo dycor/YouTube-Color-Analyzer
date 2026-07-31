@@ -35,9 +35,17 @@ N’envoyez pas de capture contenant des informations personnelles, un compte pr
 - rechargez la page YouTube si l’extension vient d’être mise à jour ;
 - essayez une autre vidéo publique afin d’écarter une restriction propre à la source.
 
+### La fenêtre détachable ou l’export se comporte mal
+
+- le panneau latéral et la fenêtre détachable partagent une seule session d’analyse ;
+- sélectionner « Arrêter » dans l’une des interfaces stoppe la capture partout ;
+- fermer une seule interface garde la capture active si l’autre reste ouverte ;
+- le bouton d’export est disponible uniquement après la pause et la réception d’une image détaillée ;
+- l’intensité de trace modifie seulement l’opacité rendue, pas les niveaux mesurés.
+
 ### Les mesures semblent différentes de DaVinci Resolve
 
-La version 1 analyse le rendu SDR visible produit par Chrome. Elle n’accède ni au fichier vidéo original, ni au signal décodé avant l’affichage, ni aux métadonnées colorimétriques complètes. Les instruments sont destinés à l’observation et ne constituent pas des mesures broadcast calibrées.
+La version 1.1 analyse le rendu SDR visible produit par Chrome. Elle n’accède ni au fichier vidéo original, ni au signal décodé avant l’affichage, ni aux métadonnées colorimétriques complètes. Les instruments sont destinés à l’observation et ne constituent pas des mesures broadcast calibrées.
 
 Les sous-titres, commandes et autres superpositions visibles peuvent également influencer le résultat.
 
@@ -46,9 +54,9 @@ Les sous-titres, commandes et autres superpositions visibles peuvent également 
 - pages classiques `youtube.com/watch` ;
 - modes normal et cinéma ;
 - Parade YRGB/RGB, Waveform YRGB et Vecteurscope Rec.709 ;
-- analyse en direct et image plus détaillée en pause.
+- analyse en direct, fenêtre détachable, intensité de trace, minimums/maximums RGB et image détaillée exportable en pause.
 
-Ne sont pas pris en charge dans la version 1 : Shorts, YouTube Music, lecteurs intégrés, plein écran, mini-lecteur, Picture-in-Picture et analyse HDR calibrée.
+Ne sont pas pris en charge dans la version 1.1 : Shorts, YouTube Music, lecteurs intégrés, plein écran, mini-lecteur, Picture-in-Picture et analyse HDR calibrée.
 
 ## Signaler un problème
 

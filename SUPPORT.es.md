@@ -35,9 +35,17 @@ No envíes capturas de pantalla que contengan información personal, una cuenta 
 - vuelve a cargar la página de YouTube si acabas de actualizar la extensión;
 - prueba con otro vídeo público para descartar una restricción específica de la fuente.
 
+### La ventana separada o el botón de exportación se comportan de forma inesperada
+
+- el panel lateral y la ventana separada comparten una sola sesión de análisis;
+- seleccionar «Detener» en cualquiera de las interfaces detiene la captura en todas partes;
+- cerrar solo una interfaz mantiene la captura si la otra sigue abierta;
+- el botón de exportación aparece solo después de pausar el vídeo y recibir una imagen detallada;
+- la intensidad de traza solo cambia la opacidad renderizada, no los niveles medidos.
+
 ### Las mediciones son diferentes de las de DaVinci Resolve
 
-La versión 1 analiza la salida SDR visible renderizada por Chrome. No accede al archivo de vídeo original, a la señal anterior al renderizado en pantalla ni a los metadatos colorimétricos completos. Los instrumentos están destinados a la observación y no constituyen mediciones broadcast calibradas.
+La versión 1.1 analiza la salida SDR visible renderizada por Chrome. No accede al archivo de vídeo original, a la señal anterior al renderizado en pantalla ni a los metadatos colorimétricos completos. Los instrumentos están destinados a la observación y no constituyen mediciones broadcast calibradas.
 
 Los subtítulos, los controles y otras superposiciones visibles también pueden afectar al resultado.
 
@@ -46,9 +54,9 @@ Los subtítulos, los controles y otras superposiciones visibles también pueden 
 - páginas estándar `youtube.com/watch`;
 - modos normal y cine;
 - Parade YRGB/RGB, Forma de onda YRGB y Vectorscopio Rec.709;
-- análisis en directo y una imagen más detallada en pausa.
+- análisis en directo, ventana separada, intensidad de traza, mínimos/máximos RGB y una imagen detallada exportable en pausa.
 
-La versión 1 no es compatible con Shorts, YouTube Music, reproductores integrados, pantalla completa, el minirreproductor de YouTube, Picture-in-Picture ni el análisis HDR calibrado.
+La versión 1.1 no es compatible con Shorts, YouTube Music, reproductores integrados, pantalla completa, el minirreproductor de YouTube, Picture-in-Picture ni el análisis HDR calibrado.
 
 ## Informar de un problema
 

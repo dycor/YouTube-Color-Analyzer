@@ -34,6 +34,7 @@ Le contrôle automatisé du site vérifie l’absence de marqueurs non résolus 
 - [x] Ajouter le workflow GitHub Pages officiel qui ne publie que `website/dist/`.
 - [x] Générer les quinze routes anglaises, françaises, espagnoles, portugaises et chinoises avec l’anglais par défaut.
 - [x] Vérifier les liens, URL canoniques et balises `hreflang` entre toutes les versions linguistiques.
+- [ ] Dans GitHub Settings → Pages, sélectionner **GitHub Actions** comme source si les URL publiques servent encore le README/Jekyll au lieu de `website/dist/`.
 - [ ] Maintenir ces pages disponibles aussi longtemps que l’extension est publiée.
 
 ## 4. Fiche Store
@@ -51,7 +52,7 @@ Le contrôle automatisé du site vérifie l’absence de marqueurs non résolus 
 
 - [x] Icône d’extension 128 × 128 incluse dans le paquet.
 - [x] Au moins une capture d’écran 1280 × 800 ou 640 × 400, sans marge.
-- [ ] Actualiser les captures 1280 × 800 pour montrer au moins la fenêtre détachable, l’intensité de trace, les minimums/maximums RGB, l’image détaillée en pause et l’export explicite.
+- [x] Actualiser les captures 1280 × 800 pour montrer au moins la fenêtre détachable, l’intensité de trace, les minimums/maximums RGB, l’image détaillée en pause et l’export explicite.
 - [x] Vignette promotionnelle 440 × 280.
 - [x] Bannière 1400 × 560 si une promotion étendue est souhaitée.
 - [x] Vérifier visuellement que les visuels utilisent l’interface réelle, l’identité Color Analyzer et aucune marque graphique YouTube ou DaVinci Resolve.
@@ -71,8 +72,8 @@ Le contrôle automatisé du site vérifie l’absence de marqueurs non résolus 
 
 ## 7. Tests
 
-- [ ] Exécuter `pnpm verify` sur la version 1.1.0 et consigner le nombre de tests et la date.
-- [ ] Exécuter `pnpm test:e2e` sur la version 1.1.0 et consigner le nombre de scénarios et la date.
+- [x] Exécuter `pnpm verify` sur la version 1.1.0 et consigner le nombre de tests et la date : 31 juillet 2026, 82 tests unitaires et build/site vérifiés.
+- [x] Exécuter `pnpm test:e2e` sur la version 1.1.0 et consigner le nombre de scénarios et la date : 31 juillet 2026, 8 scénarios Playwright Chromium.
 - [x] Charger le build final dans un profil Chromium temporaire propre via Playwright.
 - [x] Tester une première installation sans consentement déjà enregistré, l’annulation puis l’acceptation.
 - [x] Vérifier sur une page YouTube simulée qu’un démarrage sans consentement ou sans session active produit zéro snapshot, que l’observation démarre avec la session autorisée et s’arrête à sa fin.
@@ -88,11 +89,13 @@ Le contrôle automatisé du site vérifie l’absence de marqueurs non résolus 
 - [x] Exclure `icons/logo-master.png`, inutile à l’exécution.
 - [x] Vérifier automatiquement que `manifest.json` est à la racine du ZIP.
 - [x] Aligner `1.1.0` dans `package.json`, le manifeste et l’interface.
-- [ ] Générer l’archive 1.1.0 versionnée dans `release/` dont le contenu correspond exactement au build vérifié.
+- [x] Générer l’archive 1.1.0 versionnée dans `release/` dont le contenu correspond exactement au build vérifié.
 
 Archive finale attendue : `release/color-analyzer-1.1.0.zip`
 
 Empreinte vérifiable : `release/SHA256SUMS.txt` (générée avec l’archive).
+
+SHA-256 de `release/color-analyzer-1.1.0.zip` : `c4d680051bbd6196523c2bf258e67c1efafe91c7df6f6ff695b4838e26d0caed`.
 
 Commande :
 

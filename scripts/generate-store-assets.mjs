@@ -11,7 +11,7 @@ const previewPort = 4173
 const screenshotScenarios = [
   {
     fileName: '01-waveform-monitor-1280x800.png',
-    query: 'scope=waveform&consent=accepted&lang=en-US',
+    query: 'scope=waveform&consent=accepted&lang=en-US&traceIntensity=52',
   },
   {
     fileName: '02-yrgb-parade-1280x800.png',
@@ -23,7 +23,7 @@ const screenshotScenarios = [
   },
   {
     fileName: '04-detailed-paused-frame-1280x800.png',
-    query: 'scope=waveform&consent=accepted&lang=en-US&detailed=true&status=paused',
+    query: 'scope=waveform&consent=accepted&lang=en-US&view=window&detailed=true&status=paused&traceIntensity=58',
   },
   {
     fileName: '05-privacy-consent-1280x800.png',
@@ -51,7 +51,8 @@ function asDataUrl(bytes) {
 }
 
 function promoMarkup({ width, height, logoDataUrl, compact }) {
-  const titleSize = compact ? 35 : 62
+  const titleSize = compact ? 34 : 62
+  const titleSubSize = compact ? 24 : 48
   const logoSize = compact ? 112 : 238
   const eyebrowSize = compact ? 10 : 17
   const subtitleSize = compact ? 14 : 25
@@ -104,8 +105,16 @@ function promoMarkup({ width, height, logoDataUrl, compact }) {
           }
           h1 {
             margin: 0; color: #eef7f5; font-size: ${titleSize}px;
-            font-weight: 620; letter-spacing: -.045em; line-height: .98;
-            white-space: nowrap;
+            font-weight: 620; line-height: .98;
+          }
+          h1 span {
+            display: block;
+          }
+          h1 span + span {
+            margin-top: ${compact ? 2 : 5}px;
+            color: #a9cbc5;
+            font-size: ${titleSubSize}px;
+            font-weight: 560;
           }
           p {
             margin: ${compact ? 10 : 20}px 0 0; color: #a3b7b3;
@@ -146,7 +155,7 @@ function promoMarkup({ width, height, logoDataUrl, compact }) {
           <img class="logo" src="${logoDataUrl}" alt="" />
           <div class="copy">
             <div class="eyebrow">Professional video scopes</div>
-            <h1>Color Analyzer</h1>
+            <h1><span>Color Analyzer</span><span>for YouTube</span></h1>
             <p>Read the image. Recreate the grade.</p>
             <div class="features"><span>YRGB</span><span>Waveform</span><span>Rec.709</span></div>
           </div>
