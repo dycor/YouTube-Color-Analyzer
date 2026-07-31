@@ -1,5 +1,6 @@
 import { rgbToVectorscope, vectorPointToBin } from '../core/color'
 import { translate as t } from '../shared/i18n'
+import { DEFAULT_PANEL_SETTINGS } from '../shared/protocol'
 import type {
   Channel,
   DisplayScopeFrame,
@@ -185,6 +186,18 @@ export function composeColorizedWaveformPixel(
   ]
 }
 
+export function scaleTraceIntensity(value: number, intensity: number): number {
+  if (value <= 0) {
+    return 0
+  }
+
+  const normalized = Number.isFinite(intensity)
+    ? Math.min(100, Math.max(0, intensity))
+    : DEFAULT_PANEL_SETTINGS.traceIntensity
+  const gain = 2 ** ((normalized - 50) / 25)
+  return Math.min(255, Math.round(value * gain))
+}
+
 function renderWaveformTrace(
   frame: DisplayScopeFrame,
   settings: PanelSettings,
@@ -218,7 +231,10 @@ function renderWaveformTrace(
         pixels.data[pixelIndex] = 238
         pixels.data[pixelIndex + 1] = 241
         pixels.data[pixelIndex + 2] = 247
-        pixels.data[pixelIndex + 3] = value
+        pixels.data[pixelIndex + 3] = scaleTraceIntensity(
+          value,
+          settings.traceIntensity,
+        )
         continue
       }
 
@@ -244,7 +260,10 @@ function renderWaveformTrace(
       pixels.data[pixelIndex] = red
       pixels.data[pixelIndex + 1] = green
       pixels.data[pixelIndex + 2] = blue
-      pixels.data[pixelIndex + 3] = alpha
+      pixels.data[pixelIndex + 3] = scaleTraceIntensity(
+        alpha,
+        settings.traceIntensity,
+      )
     }
   }
 
@@ -255,6 +274,7 @@ function renderWaveformTrace(
 function renderParadeTrace(
   frame: DisplayScopeFrame,
   channels: Channel[],
+  intensity: number,
 ): HTMLCanvasElement {
   const width = frame.xBins * channels.length
   const trace = createTraceCanvas(width, frame.levelBins)
@@ -279,7 +299,7 @@ function renderParadeTrace(
         pixels.data[pixelIndex] = color[0]
         pixels.data[pixelIndex + 1] = color[1]
         pixels.data[pixelIndex + 2] = color[2]
-        pixels.data[pixelIndex + 3] = value
+        pixels.data[pixelIndex + 3] = scaleTraceIntensity(value, intensity)
       }
     }
   })
@@ -308,7 +328,10 @@ function hsvToRgb(hue: number): readonly [number, number, number] {
   ]
 }
 
-function renderVectorTrace(frame: DisplayScopeFrame): HTMLCanvasElement {
+function renderVectorTrace(
+  frame: DisplayScopeFrame,
+  traceIntensity: number,
+): HTMLCanvasElement {
   const trace = createTraceCanvas(frame.vectorSize, frame.vectorSize)
   const traceContext = trace.getContext('2d')
 
@@ -321,9 +344,9 @@ function renderVectorTrace(frame: DisplayScopeFrame): HTMLCanvasElement {
 
   for (let y = 0; y < frame.vectorSize; y += 1) {
     for (let x = 0; x < frame.vectorSize; x += 1) {
-      const intensity = frame.vectorIntensity[y * frame.vectorSize + x] ?? 0
+      const value = frame.vectorIntensity[y * frame.vectorSize + x] ?? 0
 
-      if (intensity === 0) {
+      if (value === 0) {
         continue
       }
 
@@ -334,7 +357,10 @@ function renderVectorTrace(frame: DisplayScopeFrame): HTMLCanvasElement {
       pixels.data[pixelIndex] = color[0]
       pixels.data[pixelIndex + 1] = color[1]
       pixels.data[pixelIndex + 2] = color[2]
-      pixels.data[pixelIndex + 3] = intensity
+      pixels.data[pixelIndex + 3] = scaleTraceIntensity(
+        value,
+        traceIntensity,
+      )
     }
   }
 
@@ -360,7 +386,7 @@ function drawParade(
   settings: PanelSettings,
 ): void {
   const channels: Channel[] = settings.paradeMode === 'yrgb' ? ['y', 'r', 'g', 'b'] : ['r', 'g', 'b']
-  const trace = renderParadeTrace(frame, channels)
+  const trace = renderParadeTrace(frame, channels, settings.traceIntensity)
   context.imageSmoothingEnabled = true
   context.drawImage(trace, plot.left, plot.top, plot.width, plot.height)
   context.font = '600 10px ui-monospace, SFMono-Regular, Menlo, monospace'
@@ -416,7 +442,7 @@ function drawVectorscope(
   const centerX = vectorPlot.left + size / 2
   const centerY = vectorPlot.top + size / 2
   const radius = size / 2
-  const trace = renderVectorTrace(frame)
+  const trace = renderVectorTrace(frame, settings.traceIntensity)
 
   context.save()
   context.beginPath()

@@ -137,7 +137,42 @@ describe('scope analysis', () => {
     })
 
     expect(live.xBins).toBe(512)
-    expect(detailed.xBins).toBe(1024)
+    expect(detailed.xBins).toBe(1200)
+  })
+
+  it('caps detailed horizontal analysis at 1920 columns', () => {
+    const width = 2048
+    const rgba = new Uint8ClampedArray(width * 4)
+    rgba.fill(255)
+
+    const frame = analyzePixels({
+      frameId: 11,
+      capturedAt: 0,
+      detailed: true,
+      width,
+      height: 1,
+      rgba,
+    })
+
+    expect(frame.xBins).toBe(1920)
+  })
+
+  it('reports the exact RGB byte range of opaque pixels', () => {
+    const frame = analyzePixels({
+      frameId: 12,
+      capturedAt: 0,
+      detailed: true,
+      width: 3,
+      height: 1,
+      rgba: pixelBuffer([
+        [14, 90, 220],
+        [229, 12, 185],
+        [0, 0, 0, 0],
+      ]),
+    })
+
+    expect(frame.channelMin).toEqual([14, 12, 185])
+    expect(frame.channelMax).toEqual([229, 90, 220])
   })
 
   it('ignores transparent canvas pixels instead of measuring them as black', () => {

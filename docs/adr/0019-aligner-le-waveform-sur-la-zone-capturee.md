@@ -2,6 +2,7 @@
 
 - Statut : accepté
 - Date : 2026-07-15
+- Dernière mise à jour : 2026-07-31
 
 ## Contexte
 
@@ -23,10 +24,12 @@ Le Waveform utilisait par ailleurs 384 colonnes dans tous les modes, une normali
 
 ### Précision et rendu du Waveform
 
-- Le direct utilise jusqu'à 512 colonnes horizontales et l'image détaillée jusqu'à 1024.
+- Le direct utilise jusqu'à 512 colonnes horizontales et l'image détaillée jusqu'à 1920, sans dépasser la largeur réellement analysée.
 - Les 256 niveaux verticaux sont conservés, car Chrome expose des composantes rendues sur 8 bits ; une échelle interne de 1024 niveaux inventerait une précision absente de la source.
 - L'intensité est normalisée avec une réponse fixe selon la proportion de pixels de chaque niveau dans sa propre colonne. Une zone dense ne modifie donc plus la luminosité des autres colonnes ni celle de l'image suivante.
 - Les composantes colorées sont converties en RGB non prémultiplié avant d'appliquer leur alpha. Une trace rouge faible reste rouge saturé et des traces R, G et B identiques apparaissent blanches.
+- Un réglage d’intensité modifie uniquement l’opacité de la trace rendue ; il ne déplace aucun niveau et ne change pas les données mesurées.
+- Les minimums et maximums réels de `R`, `G` et `B` sont calculés avec l’image et affichés comme diagnostic afin de distinguer une saturation effective d’un simple effet de densité.
 
 ### Cycle de calcul
 
@@ -38,6 +41,6 @@ Le Waveform utilisait par ailleurs 384 colonnes dans tous les modes, une normali
 
 - La position horizontale du signal reste comparable à celle de DaVinci Resolve même lorsque le panneau latéral change le ratio du viewport.
 - Les lignes à zéro ajoutées par le conteneur de capture disparaissent sans supprimer les noirs appartenant à l'œuvre analysée.
-- Le rendu détaillé est plus fin et la luminosité de la trace est stable entre lecture et pause.
+- Le rendu détaillé conserve jusqu’à une colonne par pixel sur une source large de 1920 pixels, et la luminosité de la trace est réglable sans altérer la mesure.
 - Le message détaillé est plus volumineux, mais il n'est envoyé qu'une fois par image arrêtée inchangée.
 - Les tests couvrent désormais le letterboxing et le pillarboxing du flux, les rectangles invalides, les pixels transparents, la résolution adaptative, la stabilité de densité et la composition YRGB.

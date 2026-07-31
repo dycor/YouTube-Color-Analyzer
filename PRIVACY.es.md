@@ -3,7 +3,7 @@
 [Français](./PRIVACY.fr.md) | [English](./PRIVACY.md) | [中文](./PRIVACY.zh-CN.md) | **Español** | [Português](./PRIVACY.pt-BR.md)
 
 Fecha de entrada en vigor: 17 de julio de 2026  
-Última actualización: 22 de julio de 2026
+Última actualización: 31 de julio de 2026
 
 Editor: **Color Analyzer**
 
@@ -19,7 +19,7 @@ Color Analyzer for YouTube es una extensión de Chrome que genera localmente una
 - el contexto de la página y el estado del reproductor se observan únicamente durante una sesión de análisis activa, y la observación termina con dicha sesión;
 - los píxeles visibles del vídeo se procesan localmente en el dispositivo;
 - no se captura el audio;
-- ninguna imagen del vídeo se guarda en el disco ni se envía al editor;
+- ninguna imagen del vídeo se guarda automáticamente ni se envía al editor; solo en un fotograma detallado en pausa, el usuario puede exportar explícitamente la imagen exacta analizada como PNG local;
 - la extensión no incluye cuentas de usuario, publicidad, análisis de audiencia ni un servidor de aplicación;
 - el editor no vende, comparte ni recibe ningún dato generado por el análisis.
 
@@ -31,11 +31,13 @@ Durante una sesión de análisis activa, la extensión captura temporalmente la 
 
 La salida capturada puede incluir elementos superpuestos de forma visible sobre el vídeo, como subtítulos o controles del reproductor. La extensión avisa de algunos de estos casos porque pueden afectar a la medición.
 
-Las matrices de píxeles sin procesar se conservan en la memoria de trabajo durante el tiempo necesario para calcular una medición y después se liberan sus referencias. Durante una sesión activa, el lienzo local puede conservar en memoria la última imagen recortada hasta que otra imagen la sustituya. Cuando se detiene la captura, el lienzo se restablece a 1 × 1 píxel y se libera la fuente de vídeo. Ninguna imagen se escribe en un almacenamiento persistente, se añade a un historial ni se transmite por Internet.
+Las matrices de píxeles sin procesar se conservan en la memoria de trabajo durante el tiempo necesario para calcular una medición y después se liberan sus referencias. Durante una sesión activa, el lienzo local puede conservar en memoria la última imagen recortada hasta que otra imagen la sustituya. Cuando se detiene la captura, el lienzo se restablece a 1 × 1 píxel y se libera la fuente de vídeo.
+
+La extensión nunca guarda una imagen automáticamente ni la añade a un historial interno. Solo mientras el vídeo está en pausa y la medición detallada actual está disponible, el usuario puede seleccionar explícitamente «Exportar PNG». La extensión crea entonces una descarga local del fotograma exacto utilizado para esa medición. El archivo no se sube ni se envía al editor. Una vez descargado, ese archivo solicitado por el usuario es conservado y gestionado por el navegador y el usuario como cualquier otra descarga local.
 
 ### 3.2 Contexto de la página y estado del reproductor
 
-Un script local de la extensión está presente en las páginas de `youtube.com`, pero permanece inactivo hasta que el usuario haya aceptado la divulgación de datos vigente e inicie explícitamente un análisis. Únicamente durante una sesión de análisis activa, observa periódicamente el contexto de la página y el estado del reproductor. Esta observación se detiene de inmediato cuando el usuario selecciona «Detener», navega a una página no compatible, cierra la pestaña o finaliza la captura. Al cerrar el panel lateral, se detiene tras un breve periodo de gracia técnico que permite tolerar una recarga del panel. El contexto del reproductor no se observa entre sesiones de análisis. Para localizar correctamente el vídeo, detectar la navegación interna de YouTube y sincronizar las mediciones durante la sesión activa, la extensión trata temporalmente:
+Un script local de la extensión está presente en las páginas de `youtube.com`, pero permanece inactivo hasta que el usuario haya aceptado la divulgación de datos vigente e inicie explícitamente un análisis. Únicamente durante una sesión de análisis activa, observa periódicamente el contexto de la página y el estado del reproductor. Esta observación se detiene de inmediato cuando el usuario selecciona «Detener», navega a una página no compatible, cierra la pestaña o finaliza la captura. El panel lateral y la ventana de análisis desacoplable comparten una misma sesión. Cerrar una interfaz no detiene la captura mientras la otra siga abierta; cerrar la última interfaz la detiene tras un breve periodo de gracia técnico que permite tolerar una recarga. El contexto del reproductor no se observa entre sesiones de análisis. Para localizar correctamente el vídeo, detectar la navegación interna de YouTube y sincronizar las mediciones durante la sesión activa, la extensión trata temporalmente:
 
 - la dirección de la página de YouTube actual y el identificador del vídeo;
 - el tiempo de reproducción y el estado de reproducción, pausa o búsqueda;
@@ -46,7 +48,7 @@ Esta información se utiliza únicamente para proporcionar el análisis solicita
 
 ### 3.3 Preferencias locales
 
-La extensión guarda las siguientes preferencias de visualización en el almacenamiento local de Chrome: instrumento seleccionado, modo de Parade, canales de la Forma de onda, visualización en color y visibilidad de la línea de tonos de piel. También conserva la versión de la divulgación relativa a los datos que haya aceptado el usuario. Este valor técnico no contiene ninguna identidad, dirección de página ni imagen de vídeo.
+La extensión guarda las siguientes preferencias de visualización en el almacenamiento local de Chrome: instrumento seleccionado, modo de Parade, canales de la Forma de onda, visualización en color, intensidad de la traza y visibilidad de la línea de tonos de piel. También conserva la versión de la divulgación relativa a los datos que haya aceptado el usuario. La divulgación actual es la versión 2. Este valor técnico no contiene ninguna identidad, dirección de página ni imagen de vídeo.
 
 Estas preferencias permanecen en el dispositivo hasta que se sustituyen, se borran los datos de la extensión o se desinstala la extensión.
 
@@ -56,7 +58,7 @@ Durante la sesión del navegador, la extensión puede conservar un identificador
 
 ## 4. Transmisión, intercambio y venta
 
-Color Analyzer for YouTube no transmite datos del usuario al editor ni a terceros. Los mensajes entre el script de la página, el documento fuera de pantalla, el Web Worker, el service worker y el panel lateral permanecen dentro de la extensión en el dispositivo.
+Color Analyzer for YouTube no transmite datos del usuario al editor ni a terceros. Los mensajes entre el script de la página, el documento fuera de pantalla, el Web Worker, el service worker, el panel lateral y la ventana de análisis desacoplable permanecen dentro de la extensión en el dispositivo.
 
 La extensión:
 
@@ -70,12 +72,13 @@ YouTube y Google pueden tratar datos de forma independiente cuando el usuario ut
 
 ## 5. Conservación y eliminación
 
-- **Píxeles del vídeo**: memoria de trabajo local; las matrices sin procesar se liberan después del cálculo. El último recorte solo puede permanecer en el lienzo durante la sesión activa; al detenerse, el lienzo se restablece a 1 × 1 píxel y se libera la fuente de vídeo.
+- **Píxeles del vídeo**: memoria de trabajo local; las matrices sin procesar se liberan después del cálculo. El último recorte y el fotograma detallado exacto en pausa pueden permanecer disponibles únicamente durante la sesión activa; al detenerse, el lienzo se restablece a 1 × 1 píxel y se libera la fuente de vídeo.
+- **PNG exportado por el usuario**: se crea únicamente después de seleccionar «Exportar PNG» en un fotograma detallado en pausa. El archivo descargado permanece en la ubicación gestionada por Chrome y el usuario hasta que este lo elimine. La extensión no conserva ningún historial de exportación y el editor no recibe ninguna copia.
 - **Contexto del reproductor**: memoria temporal, sustituida continuamente solo durante una sesión de análisis activa. La observación no comienza antes del consentimiento y se detiene de inmediato cuando termina la sesión.
 - **Estado de la sesión**: el identificador de la captura activa se elimina cuando se detiene la captura; el último estado puede permanecer en el almacenamiento de sesión de Chrome hasta que termine la sesión del navegador.
 - **Preferencias de visualización y versión del consentimiento**: almacenamiento local de Chrome, conservadas hasta que se modifican, se eliminan o se desinstala la extensión.
 
-Seleccionar «Detener», navegar a una página no compatible, cerrar la pestaña o el fin de la captura detienen de inmediato la captura, el análisis de píxeles y la observación del contexto del reproductor. Cerrar el panel lateral activa la misma limpieza tras un breve periodo de gracia técnico que permite tolerar una recarga del panel. Esta limpieza restablece el lienzo de análisis a 1 × 1 píxel y libera la fuente de vídeo. El contexto del reproductor no se observa antes del consentimiento ni después de que termine la sesión de análisis activa. Las preferencias guardadas se pueden eliminar borrando los datos de la extensión en Chrome o desinstalando la extensión.
+Seleccionar «Detener», navegar a una página no compatible, cerrar la pestaña o el fin de la captura detienen de inmediato la captura, el análisis de píxeles y la observación del contexto del reproductor. «Detener» actúa globalmente en el panel lateral y la ventana de análisis desacoplable. Cerrar la última interfaz de análisis abierta activa la misma limpieza tras un breve periodo de gracia técnico que permite tolerar una recarga. Esta limpieza restablece el lienzo de análisis a 1 × 1 píxel y libera la fuente de vídeo; no elimina los archivos PNG exportados anteriormente a petición del usuario. El contexto del reproductor no se observa antes del consentimiento ni después de que termine la sesión de análisis activa. Las preferencias guardadas se pueden eliminar borrando los datos de la extensión en Chrome o desinstalando la extensión.
 
 El editor no posee ninguna copia remota de esta información y, por tanto, no puede consultarla ni eliminarla de forma remota.
 

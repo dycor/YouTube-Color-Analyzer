@@ -4,6 +4,10 @@ import type {
   CaptureEndedMessage,
   CaptureStartMessage,
   CaptureStopMessage,
+  FrameExportErrorMessage,
+  FrameExportReadyMessage,
+  FrameExportReleaseMessage,
+  FrameExportRequestMessage,
   PanelFrameRequestMessage,
   PanelPortMessage,
   PlayerObservationStartMessage,
@@ -22,6 +26,7 @@ import { LatestCaptureStartQueue } from './capture-start-queue'
 
 const ACTIVE_CAPTURE_KEY = 'activeCapture'
 const LAST_SESSION_STATE_KEY = 'lastSessionState'
+const SCOPE_WINDOW_PATH = 'scope-window.html'
 
 interface ActiveCapture {
   tabId: number
@@ -39,11 +44,99 @@ let actionClickGeneration = 0
 const captureStartQueue = new LatestCaptureStartQueue<chrome.tabs.Tab>()
 const panelPorts = new Set<chrome.runtime.Port>()
 let pendingPanelClose: ReturnType<typeof globalThis.setTimeout> | null = null
+let scopeWindowOpenPromise: Promise<void> | null = null
+
+interface PendingFrameExport {
+  port: chrome.runtime.Port
+  sessionId: string
+  frameId: number
+  objectUrl?: string
+}
+
+const pendingFrameExports = new Map<string, PendingFrameExport>()
 
 function cancelPendingPanelClose(): void {
   if (pendingPanelClose !== null) {
     globalThis.clearTimeout(pendingPanelClose)
     pendingPanelClose = null
+  }
+}
+
+function postToPanel(port: chrome.runtime.Port, message: PanelPortMessage): boolean {
+  try {
+    port.postMessage(message)
+    return true
+  } catch {
+    return false
+  }
+}
+
+async function openOrFocusScopeWindow(): Promise<void> {
+  const url = chrome.runtime.getURL(SCOPE_WINDOW_PATH)
+  const contexts = await chrome.runtime.getContexts({
+    contextTypes: ['TAB'],
+    documentUrls: [url],
+  })
+  const existing = contexts.find((context) => context.windowId >= 0)
+
+  if (existing) {
+    await chrome.windows.update(existing.windowId, { focused: true })
+    return
+  }
+
+  await chrome.windows.create({
+    type: 'popup',
+    url,
+    width: 1440,
+    height: 1000,
+    focused: true,
+  })
+}
+
+function requestScopeWindow(): void {
+  scopeWindowOpenPromise ??= openOrFocusScopeWindow()
+    .catch((error: unknown) => {
+      console.error('Unable to open the analysis window.', error)
+    })
+    .finally(() => {
+      scopeWindowOpenPromise = null
+    })
+}
+
+function releaseFrameExport(
+  requestId: string,
+  pending: PendingFrameExport,
+): void {
+  if (!pending.objectUrl) {
+    return
+  }
+
+  const message: FrameExportReleaseMessage = {
+    type: 'frame-export:release',
+    target: 'offscreen',
+    requestId,
+    sessionId: pending.sessionId,
+    objectUrl: pending.objectUrl,
+  }
+  void chrome.runtime.sendMessage(message).catch(() => undefined)
+}
+
+function clearPendingFrameExports(port?: chrome.runtime.Port): void {
+  for (const [requestId, pending] of pendingFrameExports) {
+    if (port && pending.port !== port) {
+      continue
+    }
+
+    // A download can already have started when a surface closes or capture stops.
+    // Keep its Blob URL alive for the same grace period used by the UI; the
+    // offscreen document also enforces a 60-second safety TTL.
+    if (pending.objectUrl) {
+      globalThis.setTimeout(
+        () => releaseFrameExport(requestId, pending),
+        5_000,
+      )
+    }
+    pendingFrameExports.delete(requestId)
   }
 }
 
@@ -154,7 +247,7 @@ async function ensureOffscreenDocument(): Promise<void> {
 
   await chrome.offscreen.createDocument({
     url: 'offscreen.html',
-    reasons: ['USER_MEDIA', 'WORKERS'],
+    reasons: ['USER_MEDIA', 'WORKERS', 'BLOBS'],
     justification: t('offscreenJustification'),
   })
 }
@@ -165,6 +258,8 @@ async function stopActiveCapture(reason: SessionStopReason): Promise<boolean> {
   if (capture === null) {
     return false
   }
+
+  clearPendingFrameExports()
 
   const message: CaptureStopMessage = {
     type: 'capture:stop',
@@ -237,8 +332,135 @@ async function handleCaptureEnded(message: CaptureEndedMessage): Promise<void> {
     return
   }
 
+  clearPendingFrameExports()
   await setActiveCapture(null)
   await stopPlayerObservation(capture.tabId, capture.sessionId)
+}
+
+async function requestFrameExport(
+  port: chrome.runtime.Port,
+  request: Extract<PanelPortMessage, { type: 'panel:export-frame' }>,
+): Promise<void> {
+  const capture = await getActiveCapture()
+
+  if (!capture || !(await hasPrivacyConsent())) {
+    postToPanel(port, {
+      type: 'panel:export-error',
+      requestId: request.requestId,
+      reason: 'unavailable',
+    })
+    return
+  }
+
+  clearPendingFrameExports(port)
+  pendingFrameExports.set(request.requestId, {
+    port,
+    sessionId: capture.sessionId,
+    frameId: request.frameId,
+  })
+
+  const message: FrameExportRequestMessage = {
+    type: 'frame-export:request',
+    target: 'offscreen',
+    requestId: request.requestId,
+    sessionId: capture.sessionId,
+    frameId: request.frameId,
+  }
+
+  try {
+    await chrome.runtime.sendMessage(message)
+  } catch {
+    pendingFrameExports.delete(request.requestId)
+    postToPanel(port, {
+      type: 'panel:export-error',
+      requestId: request.requestId,
+      reason: 'unavailable',
+    })
+  }
+}
+
+function handleFrameExportReady(message: FrameExportReadyMessage): void {
+  const pending = pendingFrameExports.get(message.requestId)
+
+  if (!pending) {
+    const release: FrameExportReleaseMessage = {
+      type: 'frame-export:release',
+      target: 'offscreen',
+      requestId: message.requestId,
+      sessionId: message.sessionId,
+      objectUrl: message.objectUrl,
+    }
+    void chrome.runtime.sendMessage(release).catch(() => undefined)
+    return
+  }
+
+  if (
+    pending.sessionId !== message.sessionId ||
+    pending.frameId !== message.frameId
+  ) {
+    pendingFrameExports.delete(message.requestId)
+    postToPanel(pending.port, {
+      type: 'panel:export-error',
+      requestId: message.requestId,
+      reason: 'unavailable',
+    })
+    const release: FrameExportReleaseMessage = {
+      type: 'frame-export:release',
+      target: 'offscreen',
+      requestId: message.requestId,
+      sessionId: message.sessionId,
+      objectUrl: message.objectUrl,
+    }
+    void chrome.runtime.sendMessage(release).catch(() => undefined)
+    return
+  }
+
+  pending.objectUrl = message.objectUrl
+  const delivered = postToPanel(pending.port, {
+    type: 'panel:export-ready',
+    requestId: message.requestId,
+    frameId: message.frameId,
+    objectUrl: message.objectUrl,
+    fileName: message.fileName,
+  })
+
+  if (!delivered) {
+    releaseFrameExport(message.requestId, pending)
+    pendingFrameExports.delete(message.requestId)
+  }
+}
+
+function handleFrameExportError(message: FrameExportErrorMessage): void {
+  const pending = pendingFrameExports.get(message.requestId)
+
+  if (!pending || pending.sessionId !== message.sessionId) {
+    return
+  }
+
+  pendingFrameExports.delete(message.requestId)
+  postToPanel(pending.port, {
+    type: 'panel:export-error',
+    requestId: message.requestId,
+    reason: message.reason,
+  })
+}
+
+function completeFrameExport(
+  port: chrome.runtime.Port,
+  message: Extract<PanelPortMessage, { type: 'panel:export-release' }>,
+): void {
+  const pending = pendingFrameExports.get(message.requestId)
+
+  if (
+    !pending ||
+    pending.port !== port ||
+    pending.objectUrl !== message.objectUrl
+  ) {
+    return
+  }
+
+  releaseFrameExport(message.requestId, pending)
+  pendingFrameExports.delete(message.requestId)
 }
 
 async function handleOffscreenSessionState(
@@ -434,6 +656,18 @@ chrome.action.onClicked.addListener((tab) => {
 })
 
 chrome.runtime.onMessage.addListener((message: RuntimeMessage, sender, sendResponse) => {
+  if (message.type === 'frame-export:ready') {
+    handleFrameExportReady(message)
+    sendResponse()
+    return false
+  }
+
+  if (message.type === 'frame-export:error') {
+    handleFrameExportError(message)
+    sendResponse()
+    return false
+  }
+
   if (message.type === 'session:state' && message.target === 'service-worker') {
     void handleOffscreenSessionState(message).then(
       () => sendResponse(),
@@ -478,10 +712,17 @@ chrome.runtime.onConnect.addListener((port) => {
       void acceptConsentAndStart()
     } else if (message.type === 'panel:cancel-consent') {
       pendingCaptureTarget = null
+    } else if (message.type === 'panel:open-window') {
+      requestScopeWindow()
+    } else if (message.type === 'panel:export-frame') {
+      void requestFrameExport(port, message)
+    } else if (message.type === 'panel:export-release') {
+      completeFrameExport(port, message)
     }
   })
 
   port.onDisconnect.addListener(() => {
+    clearPendingFrameExports(port)
     panelPorts.delete(port)
     cancelPendingPanelClose()
 

@@ -4,6 +4,7 @@ import { describe, expect, it } from 'vitest'
 
 interface ExtensionManifest {
   manifest_version: number
+  version: string
   default_locale: string
   name: string
   short_name: string
@@ -52,6 +53,7 @@ describe('extension manifest', () => {
   it('uses Manifest V3 and Chrome 116 as its minimum', async () => {
     const manifest = await readManifest()
     expect(manifest.manifest_version).toBe(3)
+    expect(manifest.version).toBe('1.1.0')
     expect(manifest.minimum_chrome_version).toBe('116')
   })
 

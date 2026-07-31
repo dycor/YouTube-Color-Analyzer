@@ -11,6 +11,7 @@ import {
   PRIVACY_CONSENT_KEY,
   PRIVACY_CONSENT_VERSION,
   type Channel,
+  type AnalysisSurface,
   type DisplayScopeFrame,
   type PanelPortMessage,
   type PanelSettings,
@@ -33,6 +34,8 @@ function requiredElement<ElementType extends Element>(selector: string): Element
 
 const app = requiredElement<HTMLDivElement>('#app')
 const numberFormatter = new Intl.NumberFormat(activeLanguageTag)
+const surface: AnalysisSurface =
+  document.documentElement.dataset.view === 'window' ? 'window' : 'sidepanel'
 
 document.documentElement.lang = activeLanguageTag
 document.title = t('productName')
@@ -114,6 +117,18 @@ app.innerHTML = `
           <span class="status-dot" aria-hidden="true"></span>
           <span id="session-chip-label">${t('chipWaiting')}</span>
         </div>
+        <button
+          class="utility-button open-window-button"
+          id="open-window"
+          type="button"
+          title="${t('openWindow')}"
+        >
+          <svg viewBox="0 0 20 20" aria-hidden="true" focusable="false">
+            <rect x="3.5" y="4.5" width="13" height="11" rx="1.5" />
+            <path d="M3.5 7.5h13M6.5 2.5h11v10" />
+          </svg>
+          <span>${t('openWindow')}</span>
+        </button>
         <button class="stop-button" id="stop-analysis" type="button">
           <svg viewBox="0 0 20 20" aria-hidden="true" focusable="false">
             <rect x="5.5" y="5.5" width="9" height="9" rx="1.5" />
@@ -150,7 +165,21 @@ app.innerHTML = `
             <h2 id="scope-name">${t('parade')} YRGB</h2>
           </div>
         </div>
-        <span class="signal-standard" id="signal-standard">SDR · YRGB</span>
+        <div class="stage-actions">
+          <span class="signal-standard" id="signal-standard">SDR · YRGB</span>
+          <button
+            class="utility-button export-button"
+            id="export-frame"
+            type="button"
+            disabled
+          >
+            <svg viewBox="0 0 20 20" aria-hidden="true" focusable="false">
+              <path d="M10 3v9m0 0 3.25-3.25M10 12 6.75 8.75M4 14.5v2h12v-2" />
+            </svg>
+            <span id="export-label">${t('exportFrame')}</span>
+          </button>
+          <span class="export-feedback" id="export-feedback" role="status"></span>
+        </div>
       </header>
 
       <div class="scope-viewport">
@@ -184,6 +213,10 @@ app.innerHTML = `
           <span>${t('compute')}</span>
           <strong id="performance-label">—</strong>
         </div>
+        <div class="telemetry-item telemetry-range">
+          <span>${t('rgbRange')}</span>
+          <strong id="rgb-range-label">—</strong>
+        </div>
       </div>
     </section>
 
@@ -195,6 +228,17 @@ app.innerHTML = `
         </div>
         <span class="deck-standard">SDR / CHROME RENDER</span>
       </header>
+
+      <div class="trace-intensity-control">
+        <label for="trace-intensity">
+          <span class="trace-copy">
+            <strong>${t('traceIntensity')}</strong>
+            <small>${t('visualGain')}</small>
+          </span>
+          <input id="trace-intensity" type="range" min="0" max="100" step="1" />
+          <output id="trace-intensity-value" for="trace-intensity">40</output>
+        </label>
+      </div>
 
       <div class="scope-toolbar" id="parade-controls">
         <span class="control-label">${t('composition')}</span>
@@ -253,7 +297,7 @@ app.innerHTML = `
         target="_blank"
         rel="noreferrer"
       >${t('privacyPolicy')}</a>
-      <span class="version-label">V1.0.0</span>
+      <span class="version-label">V1.1.0</span>
     </footer>
   </main>
 `
@@ -267,6 +311,7 @@ const hdrWarning = requiredElement<HTMLElement>('#hdr-warning')
 const qualityLabel = requiredElement<HTMLElement>('#quality-label')
 const performanceLabel = requiredElement<HTMLElement>('#performance-label')
 const sampleCountLabel = requiredElement<HTMLElement>('#sample-count-label')
+const rgbRangeLabel = requiredElement<HTMLElement>('#rgb-range-label')
 const scopeCode = requiredElement<HTMLElement>('#scope-code')
 const scopeName = requiredElement<HTMLElement>('#scope-name')
 const signalStandard = requiredElement<HTMLElement>('#signal-standard')
@@ -276,6 +321,12 @@ const sessionChipLabel = requiredElement<HTMLElement>('#session-chip-label')
 const paradeMode = requiredElement<HTMLSelectElement>('#parade-mode')
 const waveformColorized = requiredElement<HTMLInputElement>('#waveform-colorized')
 const skinToneLine = requiredElement<HTMLInputElement>('#skin-tone-line')
+const traceIntensity = requiredElement<HTMLInputElement>('#trace-intensity')
+const traceIntensityValue = requiredElement<HTMLOutputElement>('#trace-intensity-value')
+const openWindowButton = requiredElement<HTMLButtonElement>('#open-window')
+const exportFrameButton = requiredElement<HTMLButtonElement>('#export-frame')
+const exportLabel = requiredElement<HTMLElement>('#export-label')
+const exportFeedback = requiredElement<HTMLElement>('#export-feedback')
 const stopButton = requiredElement<HTMLButtonElement>('#stop-analysis')
 const consentGate = requiredElement<HTMLElement>('#consent-gate')
 const consentFeedback = requiredElement<HTMLElement>('#consent-feedback')
@@ -285,8 +336,12 @@ const cancelConsentButton = requiredElement<HTMLButtonElement>('#cancel-consent'
 let settings: PanelSettings = structuredClone(DEFAULT_PANEL_SETTINGS)
 let currentFrame: DisplayScopeFrame | null = null
 let currentState: SessionState = { status: 'idle', sessionId: null }
+let pendingExportRequestId: string | null = null
+let renderAnimationFrame: number | null = null
 
 function mergeSettings(stored: Partial<PanelSettings> | undefined): PanelSettings {
+  const storedIntensity = Number(stored?.traceIntensity)
+
   return {
     ...structuredClone(DEFAULT_PANEL_SETTINGS),
     ...stored,
@@ -294,11 +349,25 @@ function mergeSettings(stored: Partial<PanelSettings> | undefined): PanelSetting
       ...DEFAULT_PANEL_SETTINGS.waveformChannels,
       ...stored?.waveformChannels,
     },
+    traceIntensity: Number.isFinite(storedIntensity)
+      ? Math.min(100, Math.max(0, Math.round(storedIntensity)))
+      : DEFAULT_PANEL_SETTINGS.traceIntensity,
   }
 }
 
 async function saveSettings(): Promise<void> {
   await chrome.storage.local.set({ panelSettings: settings })
+}
+
+function scheduleRender(): void {
+  if (renderAnimationFrame !== null) {
+    return
+  }
+
+  renderAnimationFrame = requestAnimationFrame(() => {
+    renderAnimationFrame = null
+    render()
+  })
 }
 
 function statusCopy(state: SessionState): { title: string; detail: string } {
@@ -362,6 +431,8 @@ function syncControls(): void {
   paradeMode.value = settings.paradeMode
   waveformColorized.checked = settings.waveformColorized
   skinToneLine.checked = settings.showSkinToneLine
+  traceIntensity.value = String(settings.traceIntensity)
+  traceIntensityValue.value = String(settings.traceIntensity)
 
   document.querySelectorAll<HTMLInputElement>('[data-channel]').forEach((input) => {
     const channel = input.dataset.channel as Channel
@@ -409,6 +480,15 @@ function render(): void {
   controlScopeLabel.textContent = activeScope.name
   captionWarning.hidden = currentState.captionsVisible !== true
   hdrWarning.hidden = currentState.hdrDetected !== true
+  const exportAvailable =
+    currentState.status === 'paused' && currentFrame?.detailed === true
+  exportFrameButton.disabled = !exportAvailable || pendingExportRequestId !== null
+  exportFrameButton.title = exportAvailable
+    ? t('exportFrame')
+    : t('exportUnavailable')
+  exportLabel.textContent = pendingExportRequestId
+    ? t('exportPreparing')
+    : t('exportFrame')
 
   if (currentFrame) {
     qualityLabel.textContent = currentFrame.detailed
@@ -424,10 +504,12 @@ function render(): void {
     sampleCountLabel.textContent = t('pixelCount', {
       count: numberFormatter.format(currentFrame.sampleCount),
     })
+    rgbRangeLabel.textContent = `R ${currentFrame.channelMin[0]}–${currentFrame.channelMax[0]} · G ${currentFrame.channelMin[1]}–${currentFrame.channelMax[1]} · B ${currentFrame.channelMin[2]}–${currentFrame.channelMax[2]}`
   } else {
     qualityLabel.textContent = t('noMeasurement')
     performanceLabel.textContent = '—'
     sampleCountLabel.textContent = '—'
+    rgbRangeLabel.textContent = '—'
   }
 
   syncControls()
@@ -476,7 +558,156 @@ skinToneLine.addEventListener('change', () => {
   render()
 })
 
-const port = chrome.runtime.connect({ name: PANEL_PORT })
+traceIntensity.addEventListener('input', () => {
+  settings.traceIntensity = Number(traceIntensity.value)
+  traceIntensityValue.value = traceIntensity.value
+  scheduleRender()
+})
+
+traceIntensity.addEventListener('change', () => {
+  void saveSettings()
+})
+
+openWindowButton.hidden = surface === 'window'
+
+let port: chrome.runtime.Port | null = null
+let reconnectTimeout: ReturnType<typeof globalThis.setTimeout> | null = null
+
+function postPanelMessage(message: PanelPortMessage): boolean {
+  try {
+    port?.postMessage(message)
+    return port !== null
+  } catch {
+    return false
+  }
+}
+
+function releaseExportObjectUrl(requestId: string, objectUrl: string): void {
+  postPanelMessage({
+    type: 'panel:export-release',
+    requestId,
+    objectUrl,
+  })
+}
+
+function isExtensionObjectUrl(objectUrl: string): boolean {
+  return objectUrl.startsWith(`blob:${location.origin}/`)
+}
+
+function downloadExport(objectUrl: string, fileName: string): void {
+  const anchor = document.createElement('a')
+  anchor.href = objectUrl
+  anchor.download = fileName
+  anchor.hidden = true
+  document.body.append(anchor)
+  anchor.click()
+  anchor.remove()
+}
+
+function handlePanelPortMessage(message: PanelPortMessage): void {
+  if (message.type === 'panel:export-ready') {
+    const expected =
+      message.requestId === pendingExportRequestId &&
+      message.frameId === currentFrame?.frameId &&
+      isExtensionObjectUrl(message.objectUrl)
+
+    if (!expected) {
+      releaseExportObjectUrl(message.requestId, message.objectUrl)
+
+      if (message.requestId === pendingExportRequestId) {
+        pendingExportRequestId = null
+        exportFeedback.textContent = t('exportFailed')
+        render()
+      }
+
+      return
+    }
+
+    pendingExportRequestId = null
+    downloadExport(message.objectUrl, message.fileName)
+    exportFeedback.textContent = t('exportComplete')
+    render()
+    globalThis.setTimeout(
+      () => releaseExportObjectUrl(message.requestId, message.objectUrl),
+      5_000,
+    )
+    return
+  }
+
+  if (
+    message.type === 'panel:export-error' &&
+    message.requestId === pendingExportRequestId
+  ) {
+    pendingExportRequestId = null
+    exportFeedback.textContent =
+      message.reason === 'unavailable'
+        ? t('exportUnavailable')
+        : t('exportFailed')
+    render()
+  }
+}
+
+function connectPanelPort(): void {
+  reconnectTimeout = null
+
+  try {
+    const nextPort = chrome.runtime.connect({ name: PANEL_PORT })
+    port = nextPort
+    nextPort.onMessage.addListener(handlePanelPortMessage)
+    nextPort.onDisconnect.addListener(() => {
+      if (port !== nextPort) {
+        return
+      }
+
+      port = null
+
+      if (pendingExportRequestId) {
+        pendingExportRequestId = null
+        exportFeedback.textContent = t('exportFailed')
+        render()
+      }
+
+      reconnectTimeout ??= globalThis.setTimeout(connectPanelPort, 500)
+    })
+    nextPort.postMessage({
+      type: 'panel:ready',
+      surface,
+    } satisfies PanelPortMessage)
+  } catch {
+    port = null
+  }
+}
+
+openWindowButton.addEventListener('click', () => {
+  postPanelMessage({ type: 'panel:open-window' })
+})
+
+exportFrameButton.addEventListener('click', () => {
+  if (
+    pendingExportRequestId ||
+    currentState.status !== 'paused' ||
+    !currentFrame?.detailed
+  ) {
+    exportFeedback.textContent = t('exportUnavailable')
+    return
+  }
+
+  const requestId = crypto.randomUUID()
+  const sent = postPanelMessage({
+    type: 'panel:export-frame',
+    requestId,
+    frameId: currentFrame.frameId,
+  })
+
+  if (!sent) {
+    exportFeedback.textContent = t('exportFailed')
+    return
+  }
+
+  pendingExportRequestId = requestId
+  exportFeedback.textContent = ''
+  render()
+})
 
 acceptConsentButton.addEventListener('click', async () => {
   consentFeedback.hidden = true
@@ -489,7 +720,7 @@ acceptConsentButton.addEventListener('click', async () => {
     })
     consentGate.hidden = true
     const message: PanelPortMessage = { type: 'panel:accept-and-start' }
-    port.postMessage(message)
+    postPanelMessage(message)
   } catch {
     consentFeedback.textContent = t('consentError')
     consentFeedback.hidden = false
@@ -501,14 +732,14 @@ acceptConsentButton.addEventListener('click', async () => {
 
 cancelConsentButton.addEventListener('click', () => {
   const message: PanelPortMessage = { type: 'panel:cancel-consent' }
-  port.postMessage(message)
+  postPanelMessage(message)
   consentFeedback.textContent = t('consentCancelled')
   consentFeedback.hidden = false
 })
 
 stopButton.addEventListener('click', () => {
   const message: PanelPortMessage = { type: 'panel:stop' }
-  port.postMessage(message)
+  postPanelMessage(message)
 })
 
 chrome.runtime.onMessage.addListener((message: RuntimeMessage) => {
@@ -530,6 +761,15 @@ chrome.runtime.onMessage.addListener((message: RuntimeMessage) => {
     } else if (message.type === 'session:state') {
       if (message.state.sessionId !== currentState.sessionId) {
         currentFrame = null
+        pendingExportRequestId = null
+        exportFeedback.textContent = ''
+      } else if (
+        message.state.status === 'active' &&
+        currentFrame?.detailed === true
+      ) {
+        // A detailed frame represents one exact paused instant. Never reuse it
+        // after playback resumes, even if the user pauses again immediately.
+        currentFrame = null
       }
 
       currentState = message.state
@@ -539,7 +779,18 @@ chrome.runtime.onMessage.addListener((message: RuntimeMessage) => {
   }
 })
 
-const resizeObserver = new ResizeObserver(render)
+chrome.storage.onChanged.addListener((changes, areaName) => {
+  if (areaName !== 'local' || !changes.panelSettings) {
+    return
+  }
+
+  settings = mergeSettings(
+    changes.panelSettings.newValue as Partial<PanelSettings> | undefined,
+  )
+  scheduleRender()
+})
+
+const resizeObserver = new ResizeObserver(scheduleRender)
 resizeObserver.observe(canvas)
 
 const [storedSettings, storedSession, storedConsent] = await Promise.all([
@@ -565,6 +816,4 @@ consentGate.hidden = hasCurrentPrivacyConsent(
 )
 
 render()
-
-const readyMessage: PanelPortMessage = { type: 'panel:ready' }
-port.postMessage(readyMessage)
+connectPanelPort()

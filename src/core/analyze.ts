@@ -51,6 +51,12 @@ export function analyzePixels(input: AnalyzePixelsInput): ScopeFrame {
   const greenOffset = channelStride * 2
   const blueOffset = channelStride * 3
   let sampleCount = 0
+  let redMin = 255
+  let greenMin = 255
+  let blueMin = 255
+  let redMax = 0
+  let greenMax = 0
+  let blueMax = 0
 
   for (let x = 0; x < width; x += 1) {
     xBinByColumn[x] = Math.floor((x * xBins) / width)
@@ -69,6 +75,12 @@ export function analyzePixels(input: AnalyzePixelsInput): ScopeFrame {
       }
 
       sampleCount += 1
+      redMin = Math.min(redMin, rByte)
+      greenMin = Math.min(greenMin, gByte)
+      blueMin = Math.min(blueMin, bByte)
+      redMax = Math.max(redMax, rByte)
+      greenMax = Math.max(greenMax, gByte)
+      blueMax = Math.max(blueMax, bByte)
 
       const r = BYTE_TO_UNIT[rByte]!
       const g = BYTE_TO_UNIT[gByte]!
@@ -99,6 +111,8 @@ export function analyzePixels(input: AnalyzePixelsInput): ScopeFrame {
     vectorSize: VECTOR_SIZE,
     sampleCount,
     computeMs: performance.now() - startedAt,
+    channelMin: sampleCount > 0 ? [redMin, greenMin, blueMin] : [0, 0, 0],
+    channelMax: sampleCount > 0 ? [redMax, greenMax, blueMax] : [0, 0, 0],
     channelDensity,
     vectorDensity,
   }

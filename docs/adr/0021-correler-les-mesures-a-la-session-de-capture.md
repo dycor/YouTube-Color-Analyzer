@@ -2,6 +2,7 @@
 
 - Statut : accepté
 - Date : 2026-07-16
+- Dernière mise à jour : 2026-07-31
 
 ## Contexte
 
@@ -17,13 +18,13 @@ Sans corrélation explicite, une mesure de l’ancienne vidéo pourrait réappar
 - Le document hors écran n’accepte qu’un seul calcul en vol et ignore tout résultat qui ne correspond pas simultanément à la session et à l’image attendues.
 - L’arrêt d’une capture invalide immédiatement le calcul en vol et termine le Worker. Une réponse déjà mise en file ne peut donc plus réactiver l’interface.
 - Le panneau efface sa mesure lorsque l’identifiant de session change et refuse les images provenant d’une autre session.
-- Le document hors écran conserve uniquement la dernière image de scope encodée de la session active. Lorsque le panneau signale qu’il est prêt, cette mesure lui est renvoyée ; aucune image RGBA n’est conservée.
+- Le document hors écran conserve la dernière image de scope encodée de la session active. Lorsque l’une des interfaces signale qu’elle est prête, cette mesure lui est renvoyée. Pour une mesure détaillée en pause seulement, il conserve aussi temporairement l’image exacte afin de répondre à un éventuel export PNG explicite ; cette image est remplacée ou effacée avec la session.
 - Une fin inattendue de piste libère la capture active. Une erreur transitoire du Worker ou de Canvas libère le verrou de calcul afin que l’analyse puisse réessayer.
 - Les états produits hors écran transitent par le service worker, qui rejette ceux d’une ancienne session avant de les mémoriser et de les relayer au panneau.
 
 ## Conséquences
 
 - Une mesure ne peut plus être publiée après l’arrêt ni contaminer la capture suivante.
-- Recharger ou reconnecter le panneau en pause restaure le dernier scope sans relire ni enregistrer les pixels de la vidéo.
+- Recharger ou reconnecter une interface en pause restaure le dernier scope sans relire ni enregistrer automatiquement les pixels de la vidéo.
 - La dernière mesure encodée reste en mémoire uniquement pendant la session active et disparaît à son arrêt.
 - Les messages de session deviennent légèrement plus verbeux, mais permettent des tests déterministes des arrêts, remplacements et reconnexions.

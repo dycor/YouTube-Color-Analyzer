@@ -3,7 +3,7 @@
 [Français](./PRIVACY.fr.md) | **English** | [中文](./PRIVACY.zh-CN.md) | [Español](./PRIVACY.es.md) | [Português](./PRIVACY.pt-BR.md)
 
 Effective date: July 17, 2026  
-Last updated: July 22, 2026
+Last updated: July 31, 2026
 
 Publisher: **Color Analyzer**
 
@@ -19,7 +19,7 @@ Color Analyzer for YouTube is a Chrome extension that locally generates a Parade
 - page context and player state are observed only during an active analysis session and observation stops when that session ends;
 - visible video pixels are processed locally on the device;
 - audio is not captured;
-- no video image is saved to disk or sent to the publisher;
+- no video image is saved automatically or sent to the publisher; only on a detailed paused frame may the user explicitly export the exact analyzed image as a local PNG;
 - the extension has no user account, advertising, analytics, or application server;
 - the publisher does not sell, share, or receive any data produced by the analysis.
 
@@ -31,11 +31,13 @@ During an active analysis session, the extension temporarily captures the visual
 
 The captured output may include elements visibly overlaid on the video, such as captions or player controls. The extension warns about some of these cases because they may affect the measurement.
 
-Raw pixel arrays are held in working memory for the time needed to calculate a measurement and their references are then released. During an active session, the local canvas may retain the latest cropped image in memory until it is replaced by another image. When capture stops, the canvas is reset to 1 × 1 pixel and the video source is released. No image is written to persistent storage, added to a history, or transmitted over the Internet.
+Raw pixel arrays are held in working memory for the time needed to calculate a measurement and their references are then released. During an active session, the local canvas may retain the latest cropped image in memory until it is replaced by another image. When capture stops, the canvas is reset to 1 × 1 pixel and the video source is released.
+
+The extension never saves an image automatically or adds one to an internal history. Only while the video is paused and the current detailed measurement is available may the user explicitly select “Export PNG.” The extension then creates a local download of the exact frame used for that measurement. The file is not uploaded or sent to the publisher. Once downloaded, that user-requested file is retained and managed by the browser and the user like any other local download.
 
 ### 3.2 Page context and player state
 
-A local extension script is present on `youtube.com` pages, but it remains inactive until the user has accepted the current data disclosure and explicitly starts an analysis. Only during an active analysis session, it periodically observes page context and player state. It stops this observation immediately when the user selects “Stop,” navigates to an unsupported page, closes the tab, or the capture ends. Closing the side panel stops it after a short technical grace period that tolerates a panel reload. It does not observe player context between analysis sessions. To locate the video correctly, detect YouTube's internal navigation, and synchronize measurements during the active session, the extension temporarily processes:
+A local extension script is present on `youtube.com` pages, but it remains inactive until the user has accepted the current data disclosure and explicitly starts an analysis. Only during an active analysis session, it periodically observes page context and player state. It stops this observation immediately when the user selects “Stop,” navigates to an unsupported page, closes the tab, or the capture ends. The side panel and detachable analysis window share one session. Closing one interface does not stop capture while the other remains open; closing the last interface stops it after a short technical grace period that tolerates a reload. It does not observe player context between analysis sessions. To locate the video correctly, detect YouTube's internal navigation, and synchronize measurements during the active session, the extension temporarily processes:
 
 - the current YouTube page address and video identifier;
 - playback time and playing, paused, or seeking state;
@@ -46,7 +48,7 @@ This information is used only to provide the requested analysis, suspend measure
 
 ### 3.3 Local preferences
 
-The extension stores the following display preferences in Chrome local storage: selected scope, Parade mode, Waveform channels, colorization, and skin tone line visibility. It also stores the version of the data disclosure accepted by the user. This technical value contains no identity, page address, or video image.
+The extension stores the following display preferences in Chrome local storage: selected scope, Parade mode, Waveform channels, colorization, trace intensity, and skin tone line visibility. It also stores the version of the data disclosure accepted by the user. The current disclosure is version 2. This technical value contains no identity, page address, or video image.
 
 These preferences remain on the device until they are replaced, the extension data is cleared, or the extension is uninstalled.
 
@@ -56,7 +58,7 @@ During the browser session, the extension may keep a random session identifier, 
 
 ## 4. Transmission, sharing, and sale
 
-Color Analyzer for YouTube does not transmit user data to the publisher or any third party. Messages between the page script, offscreen document, Web Worker, service worker, and side panel remain internal to the extension on the device.
+Color Analyzer for YouTube does not transmit user data to the publisher or any third party. Messages between the page script, offscreen document, Web Worker, service worker, side panel, and detachable analysis window remain internal to the extension on the device.
 
 The extension:
 
@@ -70,12 +72,13 @@ YouTube and Google may process data independently when the user uses their servi
 
 ## 5. Retention and deletion
 
-- **Video pixels**: local working memory; raw arrays are released after calculation. The latest crop may remain in the canvas only during the active session; on Stop, the canvas is reset to 1 × 1 pixel and the video source is released.
+- **Video pixels**: local working memory; raw arrays are released after calculation. The latest crop and exact detailed paused frame may remain available only during the active session; on Stop, the canvas is reset to 1 × 1 pixel and the video source is released.
+- **User-exported PNG**: created only after the user selects “Export PNG” on a detailed paused frame. The downloaded file remains in the location managed by Chrome and the user until the user deletes it. The extension keeps no export history and the publisher receives no copy.
 - **Player context**: temporary memory, continuously replaced only during an active analysis session. Observation does not start before consent and stops immediately when the session ends.
 - **Session state**: the active capture identifier is removed when capture stops; the latest status may remain in Chrome session storage until the browser session ends.
 - **Display preferences and consent version**: Chrome local storage, retained until changed, cleared, or the extension is uninstalled.
 
-Selecting “Stop,” navigating to an unsupported page, closing the tab, or the capture ending stops capture, pixel analysis, and player-context observation immediately. Closing the side panel triggers the same cleanup after a short technical grace period that tolerates a panel reload. Cleanup resets the analysis canvas to 1 × 1 pixel and releases the video source. No player-context observation occurs before consent or after the active analysis session ends. Stored preferences can be removed by clearing the extension's data in Chrome or uninstalling the extension.
+Selecting “Stop,” navigating to an unsupported page, closing the tab, or the capture ending stops capture, pixel analysis, and player-context observation immediately. “Stop” acts globally across the side panel and detachable analysis window. Closing the last open analysis interface triggers the same cleanup after a short technical grace period that tolerates a reload. Cleanup resets the analysis canvas to 1 × 1 pixel and releases the video source; it does not delete PNG files previously exported at the user’s request. No player-context observation occurs before consent or after the active analysis session ends. Stored preferences can be removed by clearing the extension's data in Chrome or uninstalling the extension.
 
 The publisher has no remote copy of this information and therefore cannot access or delete it remotely.
 

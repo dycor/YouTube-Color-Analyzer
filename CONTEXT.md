@@ -60,6 +60,8 @@ Dans la première version, l'utilisateur peut activer ou masquer séparément le
 
 Par défaut, `R`, `G` et `B` sont visibles et colorisés, tandis que `Y` est masqué. Lorsque la colorisation est désactivée, toutes les traces actives sont affichées en blanc. Le canal de chrominance `C` n'est pas proposé dans la première version.
 
+L’intensité visuelle de la trace peut être réglée sans modifier les niveaux mesurés ni leur position. Les minimums et maximums des canaux `R`, `G` et `B` de l’image courante sont affichés comme informations de diagnostic.
+
 ### Vecteurscope
 
 Instrument circulaire qui représente la distribution des couleurs de l'image selon une projection `Rec.709` dérivée des pixels SDR rendus par Chrome.
@@ -85,7 +87,7 @@ Dans la première version, l'image de mesure couvre toujours l'intégralité de 
 
 Pendant la lecture, une nouvelle image de mesure est échantillonnée au maximum 15 fois par seconde. En pause, l'image correspondant à la position courante est calculée précisément puis reste figée. Pendant un déplacement dans la barre temporelle, l'actualisation est limitée et un calcul précis est effectué dès que la nouvelle position est fixée.
 
-Pendant la lecture, l'échantillonnage uniforme est limité à `640 × 360` pixels en conservant le ratio de l'image et sans moyenner les couleurs. En pause ou après un déplacement, un calcul détaillé utilise jusqu'à `1920 × 1080` pixels réellement visibles. Le Waveform conserve jusqu'à 512 colonnes en direct et 1024 en pause, sur 256 niveaux issus du rendu 8 bits de Chrome. Les marges noires ajoutées par le lecteur ou le conteneur de capture sont exclues géométriquement ; les bandes noires encodées dans la vidéo restent analysées.
+Pendant la lecture, l'échantillonnage uniforme est limité à `640 × 360` pixels en conservant le ratio de l'image et sans moyenner les couleurs. En pause ou après un déplacement, un calcul détaillé utilise jusqu'à `1920 × 1080` pixels réellement visibles. Le Waveform conserve jusqu'à 512 colonnes en direct et jusqu'à 1920 en pause, sans dépasser la largeur réellement analysée, sur 256 niveaux issus du rendu 8 bits de Chrome. Les marges noires ajoutées par le lecteur ou le conteneur de capture sont exclues géométriquement ; les bandes noires encodées dans la vidéo restent analysées.
 
 Les trois instruments sont calculés en une traversée de la même image. Le calcul vise au maximum `50 ms` par image pendant la lecture ; si la machine ne tient pas ce budget, la fréquence d'actualisation diminue automatiquement sous le plafond de 15 Hz.
 
@@ -101,11 +103,11 @@ Cette valeur ne prétend pas représenter le signal vidéo original ni constitue
 
 Vidéo utilisant une plage dynamique élevée. La première version tente de la détecter et affiche un avertissement, car elle ne garantit pas la fiabilité de ses mesures HDR. Elle ne propose ni échelle en nits ni interprétation HDR calibrée.
 
-### Panneau d'analyse
+### Interface d'analyse
 
-Panneau latéral natif de Google Chrome qui contient l'interface de l'extension. Il s'ouvre depuis l'icône de l'extension et reste séparé de la page YouTube afin de ne jamais recouvrir la vidéo.
+Interface de l’extension affichée soit dans le panneau latéral natif de Google Chrome, soit dans une fenêtre d’analyse détachable. Le panneau s’ouvre depuis l’icône de l’extension ; la fenêtre peut ensuite être ouverte depuis cette interface. Les deux surfaces restent séparées de la page YouTube afin de ne jamais recouvrir la vidéo et partagent la même session de capture.
 
-Le panneau propose trois onglets : `Parade`, `Waveform` et `Vecteurscope`. Un seul instrument est affiché en grand à la fois et le dernier onglet utilisé est mémorisé.
+L’interface propose trois onglets : `Parade`, `Waveform` et `Vecteurscope`. Un seul instrument est affiché en grand à la fois et le dernier onglet utilisé est mémorisé. Fermer une surface ne coupe pas la session si l’autre reste ouverte. Le bouton `Arrêter` met fin à la session pour toutes les surfaces.
 
 ### Session d'analyse
 
@@ -113,9 +115,15 @@ Période pendant laquelle l'extension capture localement la zone visible du lect
 
 L'extension capture uniquement la vidéo de l'onglet, sans l'audio, avec `chrome.tabCapture`. Un script présent sur YouTube communique les coordonnées du lecteur afin que le flux soit recadré sur sa zone visible. Le traitement est réalisé dans un document hors écran de l'extension.
 
-Les images brutes ne sont ni enregistrées, ni envoyées sur Internet, ni transmises au panneau d'analyse. Seules les données calculées nécessaires au rendu des instruments sont communiquées au panneau.
+Les images brutes ne sont ni enregistrées automatiquement ni envoyées sur Internet. Seules les données calculées nécessaires au rendu des instruments sont communiquées normalement aux interfaces. Sur une image détaillée en pause, l’utilisateur peut demander explicitement l’export PNG local de l’image exacte analysée ; cette image est alors transmise uniquement à l’interface demandeuse pour déclencher le téléchargement local, sans historique interne ni upload.
 
-La session s'arrête lorsque le panneau est fermé, que l'utilisateur quitte YouTube ou que l'onglet capturé disparaît.
+La session s'arrête lorsque la dernière interface d’analyse est fermée après un bref délai de grâce, lorsque l'utilisateur choisit `Arrêter`, quitte YouTube ou que l'onglet capturé disparaît. `Arrêter` agit globalement sur le panneau et la fenêtre détachable.
+
+### Export de l’image détaillée
+
+Action explicite disponible uniquement lorsque la vidéo est en pause et que la mesure détaillée courante est prête. Elle télécharge localement au format PNG l’image exacte qui a servi au calcul des scopes, sans nouvelle capture et sans modification de la vidéo.
+
+L’extension ne réalise aucun export automatique, ne conserve aucun historique des images et n’envoie aucun fichier à un serveur. Le fichier téléchargé est ensuite géré par le navigateur et l’utilisateur comme tout autre téléchargement local.
 
 ### Superposition YouTube
 
@@ -129,6 +137,6 @@ L'analyse est suspendue lorsque les commandes du lecteur sont visibles. Lorsque 
 - Appliquer une correction colorimétrique ou un étalonnage.
 - Modifier ou remplacer le fichier vidéo YouTube.
 - Fournir des mesures HDR garanties ou une échelle en nits.
-- Enregistrer, exporter ou transmettre les images de la vidéo analysée.
+- Enregistrer automatiquement, constituer un historique ou envoyer sur Internet les images de la vidéo analysée.
 - Analyser les Shorts, les lecteurs intégrés sur d'autres sites ou YouTube Music.
 - Dépendre d'un backend ou d'un service distant pendant l'analyse.

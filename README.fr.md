@@ -8,16 +8,18 @@ Extension Google Chrome qui analyse localement les pixels visibles d'une vidéo 
 - Waveform avec canaux `Y`, `R`, `G`, `B` et mode colorisé ou monochrome ;
 - Vecteurscope Rec.709 avec repères de teinte et ligne des tons chair.
 
-L'extension observe l'image sans modifier la vidéo, son fichier source ou son rendu. Elle ne comporte aucun backend, n'enregistre aucune image et n'envoie aucune donnée sur Internet.
+L'extension observe l'image sans modifier la vidéo, son fichier source ou son rendu. Elle ne comporte aucun backend et n'envoie aucune donnée sur Internet. Elle n'enregistre jamais d'image automatiquement ; sur une image détaillée en pause, l'utilisateur peut exporter explicitement l'image exacte analysée sous forme de PNG local.
 
 L’interface suit automatiquement la langue du navigateur. Elle prend en charge le français, l’anglais, le chinois, l’espagnol et le portugais ; toute autre langue utilise l’anglais.
 
 ## État du projet
 
-Le socle fonctionnel comprend :
+La version 1.1.0 comprend :
 
 - un manifeste Chrome MV3 pour Chrome 116 ou version ultérieure ;
-- un panneau latéral avec les trois instruments et leurs réglages ;
+- un panneau latéral et une fenêtre d'analyse détachable qui partagent la même session de capture ;
+- une analyse en direct jusqu'à 512 colonnes horizontales et une analyse détaillée en pause jusqu'à 1920 colonnes ;
+- un réglage d'intensité de trace, les minimums/maximums RGB et l'export PNG local explicite de l'image détaillée en pause ;
 - un pipeline local `tabCapture` → document hors écran → Web Worker → panneau ;
 - un cœur colorimétrique TypeScript indépendant des API Chrome ;
 - des tests unitaires, de performance et de chargement dans Chromium.
@@ -58,6 +60,7 @@ Pour prévisualiser uniquement l’interface avec des données synthétiques, ex
 5. Sélectionner le dossier `dist/`.
 6. Ouvrir une page `https://www.youtube.com/watch?...`.
 7. Cliquer sur l'icône, lire la divulgation de première utilisation puis l'accepter explicitement pour démarrer l'analyse.
+8. Choisir éventuellement « Ouvrir dans une fenêtre » pour la vue détachable. Mettre la vidéo en pause pour activer la mesure détaillée et l’export PNG explicite.
 
 ## Architecture
 
@@ -72,7 +75,7 @@ src/
 └── sidepanel/        interface et rendu Canvas 2D
 ```
 
-Les images RGBA restent dans le document hors écran et le worker de calcul. Le panneau reçoit uniquement des cartes d’intensité compactes nécessaires au dessin des scopes.
+Les images RGBA restent dans le document hors écran et le worker de calcul. Le panneau latéral et la fenêtre détachable reçoivent uniquement les cartes d’intensité compactes nécessaires au dessin des scopes. L’image détaillée exacte n’est rendue disponible à l’interface que lorsque l’utilisateur demande explicitement un export PNG local ; elle n’est jamais enregistrée ou envoyée automatiquement.
 
 ## Documentation de conception
 

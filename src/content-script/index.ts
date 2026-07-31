@@ -16,7 +16,7 @@ const SNAPSHOT_INTERVAL_MS = 250
 // import. Keep these two literals mirrored with shared/protocol.ts; the release
 // and privacy-consent tests verify both the values and the standalone bundle.
 const PRIVACY_CONSENT_KEY = 'privacyConsentVersion'
-const PRIVACY_CONSENT_VERSION = 1
+const PRIVACY_CONSENT_VERSION = 2
 
 function hasCurrentPrivacyConsent(value: unknown): boolean {
   return value === PRIVACY_CONSENT_VERSION

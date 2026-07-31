@@ -1,17 +1,20 @@
 # Checklist de publication Chrome Web Store
 
-Date de préparation : 22 juillet 2026.
+Date de préparation : 31 juillet 2026 — version 1.1.0.
 
 ## 1. Blocages à résoudre dans le produit
 
 - [x] Implémenter la divulgation et le consentement de [`DATA_DISCLOSURE.md`](./DATA_DISCLOSURE.md) avant toute observation de l’état YouTube et toute capture.
 - [x] Empêcher le content script de publier ses snapshots avant consentement et en dehors d’une session d’analyse active.
-- [x] Enregistrer uniquement la version du consentement nécessaire, localement dans Chrome.
+- [x] Enregistrer uniquement la version du consentement nécessaire, localement dans Chrome (`privacyConsentVersion: 2`).
 - [x] Ajouter dans le panneau un lien permanent vers la politique de confidentialité.
 - [x] Réinitialiser le canvas d’analyse à 1 × 1 pixel et libérer la source vidéo à l’arrêt.
 - [x] Retirer du manifeste et de la documentation la permission inutilisée d’accès temporaire à l’onglet actif.
-- [x] Aligner la version affichée dans le panneau sur le manifeste (`V1.0.0`).
-- [ ] Vérifier que la fermeture du panneau, le bouton Arrêter, la navigation et la fermeture de l’onglet arrêtent la capture.
+- [x] Aligner la version affichée dans les interfaces sur le manifeste (`V1.1.0`).
+- [x] Partager une seule session entre le panneau latéral et la fenêtre détachable ; fermer une interface conserve la capture si l’autre reste ouverte.
+- [x] Faire de `Arrêter` une commande globale et arrêter après le délai de grâce lorsque la dernière interface ferme.
+- [x] Limiter l’export PNG à une action explicite sur la mesure détaillée en pause, sans sauvegarde automatique, historique ni upload.
+- [ ] Vérifier manuellement que la fermeture de la dernière interface, le bouton Arrêter, la navigation et la fermeture de l’onglet arrêtent la capture.
 
 ## 2. Informations de l’éditeur
 
@@ -48,7 +51,7 @@ Le contrôle automatisé du site vérifie l’absence de marqueurs non résolus 
 
 - [x] Icône d’extension 128 × 128 incluse dans le paquet.
 - [x] Au moins une capture d’écran 1280 × 800 ou 640 × 400, sans marge.
-- [x] Cinq captures 1280 × 800 montrent Waveform, Parade YRGB, Vecteurscope, image détaillée en pause et consentement au traitement local.
+- [ ] Actualiser les captures 1280 × 800 pour montrer au moins la fenêtre détachable, l’intensité de trace, les minimums/maximums RGB, l’image détaillée en pause et l’export explicite.
 - [x] Vignette promotionnelle 440 × 280.
 - [x] Bannière 1400 × 560 si une promotion étendue est souhaitée.
 - [x] Vérifier visuellement que les visuels utilisent l’interface réelle, l’identité Color Analyzer et aucune marque graphique YouTube ou DaVinci Resolve.
@@ -68,13 +71,13 @@ Le contrôle automatisé du site vérifie l’absence de marqueurs non résolus 
 
 ## 7. Tests
 
-- [x] Exécuter `pnpm verify` : 70 tests et les contrôles build/site réussis le 22 juillet 2026.
-- [x] Exécuter `pnpm test:e2e` : 7 scénarios Chromium réussis le 22 juillet 2026.
+- [ ] Exécuter `pnpm verify` sur la version 1.1.0 et consigner le nombre de tests et la date.
+- [ ] Exécuter `pnpm test:e2e` sur la version 1.1.0 et consigner le nombre de scénarios et la date.
 - [x] Charger le build final dans un profil Chromium temporaire propre via Playwright.
 - [x] Tester une première installation sans consentement déjà enregistré, l’annulation puis l’acceptation.
 - [x] Vérifier sur une page YouTube simulée qu’un démarrage sans consentement ou sans session active produit zéro snapshot, que l’observation démarre avec la session autorisée et s’arrête à sa fin.
 - [ ] Tester les cinq langues du navigateur.
-- [ ] Tester lecture, pause, navigation YouTube SPA et arrêt de capture.
+- [ ] Tester lecture, pause, navigation YouTube SPA, fenêtre détachable, synchronisation des réglages, intensité de trace, minimums/maximums RGB, export PNG et arrêt global de capture.
 - [ ] Suivre intégralement [`TEST_INSTRUCTIONS.md`](./TEST_INSTRUCTIONS.md) sur le build final.
 - [ ] Vérifier l’absence d’erreur sur `chrome://extensions`.
 
@@ -84,10 +87,10 @@ Le contrôle automatisé du site vérifie l’absence de marqueurs non résolus 
 - [x] Exclure les source maps du build de publication.
 - [x] Exclure `icons/logo-master.png`, inutile à l’exécution.
 - [x] Vérifier automatiquement que `manifest.json` est à la racine du ZIP.
-- [x] Confirmer `1.0.0` comme version de première soumission ; l’augmenter avant tout nouvel import après celui-ci.
-- [x] Générer une archive versionnée dans `release/` dont le contenu correspond exactement au build vérifié.
+- [x] Aligner `1.1.0` dans `package.json`, le manifeste et l’interface.
+- [ ] Générer l’archive 1.1.0 versionnée dans `release/` dont le contenu correspond exactement au build vérifié.
 
-Archive finale locale : `release/color-analyzer-1.0.0.zip`
+Archive finale attendue : `release/color-analyzer-1.1.0.zip`
 
 Empreinte vérifiable : `release/SHA256SUMS.txt` (générée avec l’archive).
 

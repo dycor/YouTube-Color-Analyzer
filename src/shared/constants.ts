@@ -3,7 +3,7 @@ export const PANEL_DISCONNECT_GRACE_MS = 3_000
 
 export const LEVEL_BINS = 256
 export const LIVE_WAVEFORM_X_BINS = 512
-export const DETAIL_WAVEFORM_X_BINS = 1024
+export const DETAIL_WAVEFORM_X_BINS = 1920
 export const VECTOR_SIZE = 256
 
 export const LIVE_MAX_WIDTH = 640

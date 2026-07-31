@@ -8,16 +8,18 @@ Google Chrome extension that locally analyzes the visible pixels of a YouTube vi
 - Waveform with `Y`, `R`, `G`, and `B` channels and colorized or monochrome mode;
 - Rec.709 Vectorscope with hue targets and a skin tone line.
 
-The extension observes the image without modifying the video, its source file, or its rendering. It has no backend, does not save any images, and does not send any data over the Internet.
+The extension observes the image without modifying the video, its source file, or its rendering. It has no backend and sends no data over the Internet. It never saves images automatically; on a detailed paused frame, the user may explicitly export the exact analyzed image as a local PNG.
 
 The interface automatically follows the browser language. It supports French, English, Chinese, Spanish, and Portuguese; any other language falls back to English.
 
 ## Project status
 
-The functional foundation includes:
+Version 1.1.0 includes:
 
 - a Chrome MV3 manifest for Chrome 116 or later;
-- a side panel with all three instruments and their settings;
+- a side panel and a detachable analysis window that share the same capture session;
+- live analysis at up to 512 horizontal columns and detailed paused analysis at up to 1920 columns;
+- trace-intensity control, RGB min/max diagnostics, and explicit local PNG export of the detailed paused frame;
 - a local `tabCapture` → offscreen document → Web Worker → panel pipeline;
 - a TypeScript colorimetry core independent of the Chrome APIs;
 - unit, performance, and Chromium loading tests.
@@ -58,6 +60,7 @@ To preview only the interface with synthetic data, run `pnpm ui:preview`, then o
 5. Select the `dist/` directory.
 6. Open a `https://www.youtube.com/watch?...` page.
 7. Click the extension icon, review the first-use disclosure, then explicitly accept it to start the analysis.
+8. Optionally select “Open in window” for the detachable view. Pause the video to enable the detailed measurement and explicit PNG export.
 
 ## Architecture
 
@@ -72,7 +75,7 @@ src/
 └── sidepanel/        interface and Canvas 2D rendering
 ```
 
-RGBA images remain in the offscreen document and the computation worker. The panel receives only the compact intensity maps required to draw the scopes.
+RGBA images remain in the offscreen document and the computation worker. The side panel and detachable window receive only the compact intensity maps required to draw the scopes. The exact detailed frame is made available to the interface only when the user explicitly requests a local PNG export; it is never saved or uploaded automatically.
 
 ## Design documentation
 

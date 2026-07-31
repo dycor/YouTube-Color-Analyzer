@@ -24,6 +24,7 @@ export default defineConfig(({ mode }) => ({
     rollupOptions: {
       input: {
         sidepanel: resolve(import.meta.dirname, 'sidepanel.html'),
+        'scope-window': resolve(import.meta.dirname, 'scope-window.html'),
         offscreen: resolve(import.meta.dirname, 'offscreen.html'),
         'service-worker': resolve(import.meta.dirname, 'src/service-worker/index.ts'),
         'content-script': resolve(import.meta.dirname, 'src/content-script/index.ts'),

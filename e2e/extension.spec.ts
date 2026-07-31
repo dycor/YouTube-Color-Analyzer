@@ -81,8 +81,8 @@ test('requires explicit consent and stores only its current version', async () =
     await serviceWorker.evaluate(async () =>
       chrome.storage.local.get('privacyConsentVersion'),
     ),
-  ).toEqual({ privacyConsentVersion: 1 })
-  await expect(page.getByText('V1.0.0')).toBeVisible()
+  ).toEqual({ privacyConsentVersion: 2 })
+  await expect(page.getByText('V1.1.0')).toBeVisible()
   await expect(
     page.locator('footer').getByRole('link', { name: 'Privacy Policy' }),
   ).toHaveAttribute(
@@ -161,7 +161,7 @@ test('observes YouTube only while an analysis session is active', async () => {
   ).toBe(0)
 
   await serviceWorker.evaluate(async () => {
-    await chrome.storage.local.set({ privacyConsentVersion: 1 })
+    await chrome.storage.local.set({ privacyConsentVersion: 2 })
   })
   await requestObservation()
   await page.waitForTimeout(400)
@@ -251,6 +251,48 @@ test('the packaged side panel exposes the three instruments', async () => {
   await expect(page.locator('#scope-canvas')).toBeVisible()
 })
 
+test('opens one detachable analysis window and synchronizes trace intensity', async () => {
+  const panel = await context.newPage()
+  await panel.goto(`chrome-extension://${extensionId}/sidepanel.html`)
+
+  await panel.getByRole('button', { name: 'Open in window' }).click()
+  await expect
+    .poll(
+      () =>
+        context
+          .pages()
+          .filter((page) => page.url().endsWith('/scope-window.html')).length,
+    )
+    .toBe(1)
+
+  const scopeWindow = context
+    .pages()
+    .find((page) => page.url().endsWith('/scope-window.html'))!
+  await expect(scopeWindow.getByRole('heading', { name: 'Color Analyzer' })).toBeVisible()
+  await expect(
+    scopeWindow.getByRole('button', { name: 'Open in window' }),
+  ).toBeHidden()
+
+  await panel.getByRole('button', { name: 'Open in window' }).click()
+  await panel.waitForTimeout(250)
+  expect(
+    context
+      .pages()
+      .filter((page) => page.url().endsWith('/scope-window.html')).length,
+  ).toBe(1)
+
+  await panel.locator('#trace-intensity').evaluate((element) => {
+    const input = element as HTMLInputElement
+    input.value = '67'
+    input.dispatchEvent(new Event('input', { bubbles: true }))
+    input.dispatchEvent(new Event('change', { bubbles: true }))
+  })
+  await expect(scopeWindow.locator('#trace-intensity')).toHaveValue('67')
+
+  await scopeWindow.close()
+  await panel.close()
+})
+
 test('the panel remembers the selected instrument', async () => {
   const page = await context.newPage()
   await page.goto(`chrome-extension://${extensionId}/sidepanel.html`)
@@ -329,6 +371,8 @@ test('the panel renders scope data received through extension messaging', async 
         vectorSize,
         sampleCount: 230400,
         computeMs: 8.2,
+        channelMin: [0, 0, 0],
+        channelMax: [255, 255, 255],
         channelIntensityBase64: encode(channelIntensity),
         vectorIntensityBase64: encode(vectorIntensity),
       },
@@ -367,6 +411,8 @@ test('the panel ignores a delayed frame from an older capture session', async ()
       vectorSize: 256,
       sampleCount: 1,
       computeMs: 0.1,
+      channelMin: [0, 0, 0],
+      channelMax: [0, 0, 0],
       channelIntensityBase64: encode(new Uint8Array(4 * 256)),
       vectorIntensityBase64: encode(new Uint8Array(256 * 256)),
     }
@@ -412,6 +458,8 @@ test('the panel ignores a delayed frame from an older capture session', async ()
         vectorSize: 256,
         sampleCount: 1,
         computeMs: 0.1,
+        channelMin: [0, 0, 0],
+        channelMax: [0, 0, 0],
         channelIntensityBase64: encode(new Uint8Array(4 * 256)),
         vectorIntensityBase64: encode(new Uint8Array(256 * 256)),
       },
@@ -448,6 +496,8 @@ test('a reconnected paused panel requests the last scope frame', async () => {
       vectorSize: 256,
       sampleCount: 1,
       computeMs: 0.1,
+      channelMin: [0, 0, 0],
+      channelMax: [0, 0, 0],
       channelIntensityBase64: encode(new Uint8Array(4 * 256)),
       vectorIntensityBase64: encode(new Uint8Array(256 * 256)),
     }
@@ -480,6 +530,7 @@ test('a reconnected paused panel requests the last scope frame', async () => {
   await page.goto(`chrome-extension://${extensionId}/sidepanel.html`)
 
   await expect(page.getByText('Detailed · 1×1')).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Export frame' })).toBeEnabled()
 
   await sender.evaluate(async () => {
     await chrome.runtime.sendMessage({

@@ -31,7 +31,7 @@ const languages = {
     },
     home: {
       meta: "Local Parade, Waveform, and Vectorscope for YouTube videos in Chrome.",
-      eyebrow: "LOCAL COLOR ANALYSIS · CHROME SIDE PANEL",
+      eyebrow: "LOCAL COLOR ANALYSIS · SIDE PANEL OR DETACHED WINDOW",
       title: "Read the color. Keep the video untouched.",
       intro:
         "Analyze the visible image of a YouTube video with familiar color scopes, then use those observations to recreate a look in DaVinci Resolve.",
@@ -56,7 +56,7 @@ const languages = {
         {
           name: "Waveform",
           description:
-            "Read luminance and selectable Y, R, G, and B channels across the width of the image.",
+            "Read selectable Y, R, G, and B channels with adjustable trace intensity and up to 1920 columns on a detailed paused frame.",
         },
         {
           name: "Rec.709 Vectorscope",
@@ -68,14 +68,14 @@ const languages = {
       workflowTitle: "From reference to grade",
       steps: [
         ["01", "Open", "Load a standard YouTube watch page in normal or theater mode."],
-        ["02", "Analyze", "Start the extension and inspect the scopes live or on a detailed paused frame."],
+        ["02", "Analyze", "Use the side panel or detached window, adjust trace intensity, and inspect a detailed paused frame."],
         ["03", "Recreate", "Use the readings as visual references while grading your own project."],
       ],
       privacyTitle: "The frame stays on your device.",
       privacyText:
-        "Video pixels are processed in local working memory. No image, page address, or playback data is sent to the publisher or a third party.",
+        "Video pixels are processed in local working memory. No image, page address, or playback data is sent to the publisher or a third party. Nothing is saved automatically; a PNG is created locally only when you explicitly export the detailed paused frame.",
       privacyLink: "Read the full Privacy Policy",
-      limitsTitle: "Version 1 scope",
+      limitsTitle: "Version 1.1 scope",
       limits:
         "Built for standard YouTube watch pages, SDR output, and normal or theater mode. It does not support calibrated HDR, Shorts, fullscreen, miniplayer, embedded players, or Picture-in-Picture.",
     },
@@ -105,7 +105,7 @@ const languages = {
     },
     home: {
       meta: "Parade, Waveform et Vecteurscope locaux pour les vidéos YouTube dans Chrome.",
-      eyebrow: "ANALYSE COLORIMÉTRIQUE LOCALE · PANNEAU CHROME",
+      eyebrow: "ANALYSE COLORIMÉTRIQUE LOCALE · PANNEAU OU FENÊTRE DÉTACHABLE",
       title: "Lisez la couleur. Laissez la vidéo intacte.",
       intro:
         "Analysez l’image visible d’une vidéo YouTube avec des instruments familiers, puis utilisez ces observations pour recréer un rendu dans DaVinci Resolve.",
@@ -130,7 +130,7 @@ const languages = {
         {
           name: "Waveform",
           description:
-            "Lisez la luminance et les canaux Y, R, G et B sélectionnables sur toute la largeur de l’image.",
+            "Lisez les canaux Y, R, G et B avec une intensité de trace réglable et jusqu’à 1920 colonnes sur une image détaillée en pause.",
         },
         {
           name: "Vecteurscope Rec.709",
@@ -142,14 +142,14 @@ const languages = {
       workflowTitle: "De la référence à l’étalonnage",
       steps: [
         ["01", "Ouvrir", "Chargez une page YouTube classique en mode normal ou cinéma."],
-        ["02", "Analyser", "Lancez l’extension et observez les instruments en direct ou sur une image détaillée en pause."],
+        ["02", "Analyser", "Utilisez le panneau ou la fenêtre détachable, réglez l’intensité de trace et inspectez une image détaillée en pause."],
         ["03", "Recréer", "Utilisez les mesures comme références visuelles pendant l’étalonnage de votre projet."],
       ],
       privacyTitle: "L’image reste sur votre appareil.",
       privacyText:
-        "Les pixels vidéo sont traités dans la mémoire de travail locale. Aucune image, adresse de page ou donnée de lecture n’est envoyée à l’éditeur ou à un tiers.",
+        "Les pixels vidéo sont traités dans la mémoire de travail locale. Aucune image, adresse de page ou donnée de lecture n’est envoyée à l’éditeur ou à un tiers. Rien n’est enregistré automatiquement ; un PNG local est créé uniquement lorsque vous exportez explicitement l’image détaillée en pause.",
       privacyLink: "Lire la politique de confidentialité complète",
-      limitsTitle: "Périmètre de la version 1",
+      limitsTitle: "Périmètre de la version 1.1",
       limits:
         "Conçue pour les pages YouTube classiques, le rendu SDR et les modes normal ou cinéma. Le HDR calibré, les Shorts, le plein écran, le mini-lecteur, les lecteurs intégrés et Picture-in-Picture ne sont pas pris en charge.",
     },
@@ -179,7 +179,7 @@ const languages = {
     },
     home: {
       meta: "Parade, Forma de onda y Vectorscopio locales para vídeos de YouTube en Chrome.",
-      eyebrow: "ANÁLISIS DE COLOR LOCAL · PANEL LATERAL DE CHROME",
+      eyebrow: "ANÁLISIS DE COLOR LOCAL · PANEL O VENTANA SEPARADA",
       title: "Lee el color. Mantén el vídeo intacto.",
       intro:
         "Analiza la imagen visible de un vídeo de YouTube con instrumentos conocidos y utiliza esas observaciones para recrear un aspecto en DaVinci Resolve.",
@@ -204,7 +204,7 @@ const languages = {
         {
           name: "Forma de onda",
           description:
-            "Lee la luminancia y los canales Y, R, G y B seleccionables a lo largo del ancho de la imagen.",
+            "Lee los canales Y, R, G y B con intensidad de traza ajustable y hasta 1920 columnas en un fotograma detallado en pausa.",
         },
         {
           name: "Vectorscopio Rec.709",
@@ -216,14 +216,14 @@ const languages = {
       workflowTitle: "De la referencia al etalonaje",
       steps: [
         ["01", "Abrir", "Carga una página de visualización estándar de YouTube en modo normal o cine."],
-        ["02", "Analizar", "Inicia la extensión y consulta los instrumentos en directo o sobre un fotograma detallado en pausa."],
+        ["02", "Analizar", "Usa el panel o la ventana separada, ajusta la intensidad de traza y examina un fotograma detallado en pausa."],
         ["03", "Recrear", "Usa las lecturas como referencias visuales mientras etalonas tu propio proyecto."],
       ],
       privacyTitle: "El fotograma permanece en tu dispositivo.",
       privacyText:
-        "Los píxeles del vídeo se procesan en la memoria de trabajo local. No se envía ninguna imagen, dirección de página ni dato de reproducción al editor o a terceros.",
+        "Los píxeles del vídeo se procesan en la memoria de trabajo local. No se envía ninguna imagen, dirección de página ni dato de reproducción al editor o a terceros. Nada se guarda automáticamente; solo se crea un PNG local cuando exportas explícitamente el fotograma detallado en pausa.",
       privacyLink: "Leer la Política de privacidad completa",
-      limitsTitle: "Alcance de la versión 1",
+      limitsTitle: "Alcance de la versión 1.1",
       limits:
         "Diseñada para páginas estándar de YouTube, salida SDR y modos normal o cine. No admite HDR calibrado, Shorts, pantalla completa, minirreproductor, reproductores integrados ni Picture-in-Picture.",
     },
@@ -253,7 +253,7 @@ const languages = {
     },
     home: {
       meta: "Parade, Waveform e Vectorscope locais para vídeos do YouTube no Chrome.",
-      eyebrow: "ANÁLISE DE CORES LOCAL · PAINEL LATERAL DO CHROME",
+      eyebrow: "ANÁLISE DE CORES LOCAL · PAINEL OU JANELA DESTACADA",
       title: "Leia a cor. Mantenha o vídeo intacto.",
       intro:
         "Analise a imagem visível de um vídeo do YouTube com instrumentos familiares e use essas observações para recriar um visual no DaVinci Resolve.",
@@ -278,7 +278,7 @@ const languages = {
         {
           name: "Waveform",
           description:
-            "Leia a luminância e os canais Y, R, G e B selecionáveis ao longo da largura da imagem.",
+            "Leia os canais Y, R, G e B com intensidade de traço ajustável e até 1920 colunas em um quadro detalhado em pausa.",
         },
         {
           name: "Vectorscope Rec.709",
@@ -290,14 +290,14 @@ const languages = {
       workflowTitle: "Da referência à correção de cor",
       steps: [
         ["01", "Abrir", "Carregue uma página padrão de exibição do YouTube no modo normal ou cinema."],
-        ["02", "Analisar", "Inicie a extensão e inspecione os instrumentos ao vivo ou em um quadro detalhado pausado."],
+        ["02", "Analisar", "Use o painel ou a janela destacada, ajuste a intensidade do traço e examine um quadro detalhado em pausa."],
         ["03", "Recriar", "Use as leituras como referências visuais ao trabalhar nas cores do seu projeto."],
       ],
       privacyTitle: "O quadro permanece no seu dispositivo.",
       privacyText:
-        "Os pixels do vídeo são processados na memória de trabalho local. Nenhuma imagem, endereço de página ou dado de reprodução é enviado ao publicador ou a terceiros.",
+        "Os pixels do vídeo são processados na memória de trabalho local. Nenhuma imagem, endereço de página ou dado de reprodução é enviado ao publicador ou a terceiros. Nada é salvo automaticamente; um PNG local só é criado quando você exporta explicitamente o quadro detalhado em pausa.",
       privacyLink: "Ler a Política de Privacidade completa",
-      limitsTitle: "Escopo da versão 1",
+      limitsTitle: "Escopo da versão 1.1",
       limits:
         "Desenvolvida para páginas padrão do YouTube, saída SDR e modos normal ou cinema. Não oferece suporte a HDR calibrado, Shorts, tela cheia, miniplayer, players incorporados ou Picture-in-Picture.",
     },
@@ -326,7 +326,7 @@ const languages = {
     },
     home: {
       meta: "在 Chrome 中为 YouTube 视频提供本地分量图、波形图和矢量示波器。",
-      eyebrow: "本地色彩分析 · CHROME 侧边栏",
+      eyebrow: "本地色彩分析 · 侧边栏或独立窗口",
       title: "读取色彩，不改变视频。",
       intro:
         "使用熟悉的色彩示波器分析 YouTube 视频的可见画面，再将观察结果作为在 DaVinci Resolve 中重现风格的参考。",
@@ -348,7 +348,7 @@ const languages = {
         },
         {
           name: "波形图",
-          description: "读取图像宽度范围内可单独选择的 Y、R、G、B 通道及亮度。",
+          description: "读取可单独选择的 Y、R、G、B 通道，调节轨迹强度，并在暂停详细帧中使用最多 1920 个水平列。",
         },
         {
           name: "Rec.709 矢量示波器",
@@ -359,14 +359,14 @@ const languages = {
       workflowTitle: "从参考画面到调色",
       steps: [
         ["01", "打开", "在普通模式或影院模式下加载标准 YouTube 观看页面。"],
-        ["02", "分析", "启动扩展程序，实时检查示波器，或在暂停时分析更详细的画面。"],
+        ["02", "分析", "使用侧边栏或独立窗口，调节轨迹强度，并检查暂停时的详细画面。"],
         ["03", "重现", "在为自己的项目调色时，将读数作为视觉参考。"],
       ],
       privacyTitle: "画面始终保留在您的设备上。",
       privacyText:
-        "视频像素仅在本地工作内存中处理。任何图像、页面地址或播放数据都不会发送给发布者或第三方。",
+        "视频像素仅在本地工作内存中处理。任何图像、页面地址或播放数据都不会发送给发布者或第三方。扩展不会自动保存任何内容；只有当您明确导出暂停的详细帧时，才会在本地创建 PNG。",
       privacyLink: "阅读完整隐私政策",
-      limitsTitle: "版本 1 支持范围",
+      limitsTitle: "版本 1.1 支持范围",
       limits:
         "适用于标准 YouTube 观看页面、SDR 输出以及普通或影院模式。不支持校准 HDR、Shorts、全屏、迷你播放器、嵌入式播放器或画中画。",
     },

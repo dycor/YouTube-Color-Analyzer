@@ -12,17 +12,17 @@ import {
 describe('privacy consent version gate', () => {
   it('uses the single documented local-storage key and version', () => {
     expect(PRIVACY_CONSENT_KEY).toBe('privacyConsentVersion')
-    expect(PRIVACY_CONSENT_VERSION).toBe(1)
+    expect(PRIVACY_CONSENT_VERSION).toBe(2)
   })
 
   it('accepts only the current numeric consent version', () => {
-    expect(hasCurrentPrivacyConsent(1)).toBe(true)
+    expect(hasCurrentPrivacyConsent(2)).toBe(true)
     expect(hasCurrentPrivacyConsent(undefined)).toBe(false)
     expect(hasCurrentPrivacyConsent(null)).toBe(false)
     expect(hasCurrentPrivacyConsent(false)).toBe(false)
-    expect(hasCurrentPrivacyConsent('1')).toBe(false)
+    expect(hasCurrentPrivacyConsent('2')).toBe(false)
     expect(hasCurrentPrivacyConsent(0)).toBe(false)
-    expect(hasCurrentPrivacyConsent(2)).toBe(false)
+    expect(hasCurrentPrivacyConsent(1)).toBe(false)
   })
 
   it('keeps the classic content-script gate aligned with the shared contract', async () => {

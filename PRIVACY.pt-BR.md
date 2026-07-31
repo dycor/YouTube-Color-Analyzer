@@ -3,7 +3,7 @@
 [Français](./PRIVACY.fr.md) | [English](./PRIVACY.md) | [中文](./PRIVACY.zh-CN.md) | [Español](./PRIVACY.es.md) | **Português**
 
 Data de vigência: 17 de julho de 2026  
-Última atualização: 22 de julho de 2026
+Última atualização: 31 de julho de 2026
 
 Publicador: **Color Analyzer**
 
@@ -19,7 +19,7 @@ Color Analyzer for YouTube é uma extensão do Chrome que gera localmente uma Pa
 - o contexto da página e o estado do player são observados somente durante uma sessão de análise ativa, e a observação termina com essa sessão;
 - os pixels visíveis do vídeo são processados localmente no dispositivo;
 - o áudio não é capturado;
-- nenhuma imagem do vídeo é salva no disco nem enviada ao publicador;
+- nenhuma imagem do vídeo é salva automaticamente nem enviada ao publicador; somente em um quadro detalhado com o vídeo pausado, o usuário pode exportar explicitamente a imagem exata analisada como um PNG local;
 - a extensão não possui conta de usuário, publicidade, análise de público nem servidor de aplicativo;
 - o publicador não vende, compartilha nem recebe nenhum dado produzido pela análise.
 
@@ -31,11 +31,13 @@ Durante uma sessão de análise ativa, a extensão captura temporariamente a sa�
 
 A saída capturada pode incluir elementos visivelmente sobrepostos ao vídeo, como legendas ou controles do player. A extensão alerta sobre alguns desses casos, pois eles podem afetar a medição.
 
-As matrizes de pixels brutos permanecem na memória de trabalho pelo tempo necessário para calcular uma medição e depois suas referências são liberadas. Durante uma sessão ativa, o canvas local pode manter na memória a última imagem recortada até que ela seja substituída por outra imagem. Quando a captura é interrompida, o canvas é redefinido para 1 × 1 pixel e a fonte de vídeo é liberada. Nenhuma imagem é gravada em armazenamento persistente, adicionada a um histórico nem transmitida pela Internet.
+As matrizes de pixels brutos permanecem na memória de trabalho pelo tempo necessário para calcular uma medição e depois suas referências são liberadas. Durante uma sessão ativa, o canvas local pode manter na memória a última imagem recortada até que ela seja substituída por outra imagem. Quando a captura é interrompida, o canvas é redefinido para 1 × 1 pixel e a fonte de vídeo é liberada.
+
+A extensão nunca salva uma imagem automaticamente nem a adiciona a um histórico interno. Somente enquanto o vídeo estiver pausado e a medição detalhada atual estiver disponível, o usuário poderá selecionar explicitamente “Exportar PNG”. A extensão cria então um download local do quadro exato usado nessa medição. O arquivo não é enviado pela Internet nem ao publicador. Depois do download, esse arquivo solicitado pelo usuário é mantido e gerenciado pelo navegador e pelo usuário como qualquer outro download local.
 
 ### 3.2 Contexto da página e estado do player
 
-Um script local da extensão está presente nas páginas de `youtube.com`, mas permanece inativo até que o usuário aceite a divulgação de dados vigente e inicie explicitamente uma análise. Somente durante uma sessão de análise ativa, ele observa periodicamente o contexto da página e o estado do player. Essa observação é interrompida imediatamente quando o usuário seleciona “Parar”, navega para uma página não compatível, fecha a guia ou quando a captura termina. Ao fechar o painel lateral, ela é interrompida após um breve período técnico de tolerância que permite o recarregamento do painel. O contexto do player não é observado entre sessões de análise. Para localizar corretamente o vídeo, detectar a navegação interna do YouTube e sincronizar as medições durante a sessão ativa, a extensão processa temporariamente:
+Um script local da extensão está presente nas páginas de `youtube.com`, mas permanece inativo até que o usuário aceite a divulgação de dados vigente e inicie explicitamente uma análise. Somente durante uma sessão de análise ativa, ele observa periodicamente o contexto da página e o estado do player. Essa observação é interrompida imediatamente quando o usuário seleciona “Parar”, navega para uma página não compatível, fecha a guia ou quando a captura termina. O painel lateral e a janela de análise destacável compartilham uma única sessão. Fechar uma interface não interrompe a captura enquanto a outra permanecer aberta; fechar a última interface a interrompe após um breve período técnico de tolerância que permite um recarregamento. O contexto do player não é observado entre sessões de análise. Para localizar corretamente o vídeo, detectar a navegação interna do YouTube e sincronizar as medições durante a sessão ativa, a extensão processa temporariamente:
 
 - o endereço atual da página do YouTube e o identificador do vídeo;
 - o tempo de reprodução e o estado de reprodução, pausa ou busca;
@@ -46,7 +48,7 @@ Essas informações são usadas somente para fornecer a análise solicitada, sus
 
 ### 3.3 Preferências locais
 
-A extensão armazena no armazenamento local do Chrome as seguintes preferências de exibição: instrumento selecionado, modo da Parade, canais do Waveform, colorização e visibilidade da linha de tons de pele. Ela também armazena a versão da divulgação de dados aceita pelo usuário. Esse valor técnico não contém identidade, endereço de página nem imagem de vídeo.
+A extensão armazena no armazenamento local do Chrome as seguintes preferências de exibição: instrumento selecionado, modo da Parade, canais do Waveform, colorização, intensidade do traço e visibilidade da linha de tons de pele. Ela também armazena a versão da divulgação de dados aceita pelo usuário. A divulgação atual é a versão 2. Esse valor técnico não contém identidade, endereço de página nem imagem de vídeo.
 
 Essas preferências permanecem no dispositivo até serem substituídas, até que os dados da extensão sejam apagados ou até que a extensão seja desinstalada.
 
@@ -56,7 +58,7 @@ Durante a sessão do navegador, a extensão pode manter um identificador aleató
 
 ## 4. Transmissão, compartilhamento e venda
 
-Color Analyzer for YouTube não transmite dados do usuário ao publicador nem a terceiros. As mensagens entre o script da página, o documento offscreen, o Web Worker, o service worker e o painel lateral permanecem internas à extensão no dispositivo.
+Color Analyzer for YouTube não transmite dados do usuário ao publicador nem a terceiros. As mensagens entre o script da página, o documento offscreen, o Web Worker, o service worker, o painel lateral e a janela de análise destacável permanecem internas à extensão no dispositivo.
 
 A extensão:
 
@@ -70,12 +72,13 @@ O YouTube e o Google podem processar dados de forma independente quando o usuár
 
 ## 5. Retenção e exclusão
 
-- **Pixels do vídeo**: memória de trabalho local; as matrizes brutas são liberadas após o cálculo. O último recorte pode permanecer no canvas somente durante a sessão ativa; ao parar, o canvas é redefinido para 1 × 1 pixel e a fonte de vídeo é liberada.
+- **Pixels do vídeo**: memória de trabalho local; as matrizes brutas são liberadas após o cálculo. O último recorte e o quadro detalhado exato em pausa podem permanecer disponíveis somente durante a sessão ativa; ao parar, o canvas é redefinido para 1 × 1 pixel e a fonte de vídeo é liberada.
+- **PNG exportado pelo usuário**: criado somente depois de selecionar “Exportar PNG” em um quadro detalhado em pausa. O arquivo baixado permanece no local gerenciado pelo Chrome e pelo usuário até ser excluído por ele. A extensão não mantém histórico de exportação e o publicador não recebe nenhuma cópia.
 - **Contexto do player**: memória temporária, substituída continuamente somente durante uma sessão de análise ativa. A observação não começa antes do consentimento e é interrompida imediatamente quando a sessão termina.
 - **Estado da sessão**: o identificador da captura ativa é removido quando a captura é interrompida; o status mais recente pode permanecer no armazenamento de sessão do Chrome até o fim da sessão do navegador.
 - **Preferências de exibição e versão do consentimento**: armazenamento local do Chrome, mantidas até serem alteradas, apagadas ou até que a extensão seja desinstalada.
 
-Selecionar “Parar”, navegar para uma página não compatível, fechar a guia ou o fim da captura interrompem imediatamente a captura, a análise de pixels e a observação do contexto do player. Fechar o painel lateral aciona a mesma limpeza após um breve período técnico de tolerância que permite o recarregamento do painel. Essa limpeza redefine o canvas de análise para 1 × 1 pixel e libera a fonte de vídeo. O contexto do player não é observado antes do consentimento nem depois do fim da sessão de análise ativa. As preferências armazenadas podem ser removidas apagando os dados da extensão no Chrome ou desinstalando a extensão.
+Selecionar “Parar”, navegar para uma página não compatível, fechar a guia ou o fim da captura interrompem imediatamente a captura, a análise de pixels e a observação do contexto do player. “Parar” atua globalmente no painel lateral e na janela de análise destacável. Fechar a última interface de análise aberta aciona a mesma limpeza após um breve período técnico de tolerância que permite um recarregamento. Essa limpeza redefine o canvas de análise para 1 × 1 pixel e libera a fonte de vídeo; ela não exclui arquivos PNG exportados anteriormente a pedido do usuário. O contexto do player não é observado antes do consentimento nem depois do fim da sessão de análise ativa. As preferências armazenadas podem ser removidas apagando os dados da extensão no Chrome ou desinstalando a extensão.
 
 O publicador não possui nenhuma cópia remota dessas informações e, portanto, não pode acessá-las nem excluí-las remotamente.
 

@@ -32,6 +32,6 @@ Le statut trader ou non-trader reste à déclarer honnêtement dans le Dashboard
 
 ## Important
 
-Ces textes ont été réaudités à partir du comportement du code au 22 juillet 2026. Ils doivent être réaudités si les permissions, le stockage, les appels réseau, la capture ou la finalité du produit changent.
+Ces textes ont été réaudités à partir du comportement de la version 1.1.0 au 31 juillet 2026, notamment la fenêtre détachable, l’export PNG local explicite et le consentement version 2. Ils doivent être réaudités si les permissions, le stockage, les appels réseau, la capture ou la finalité du produit changent.
 
 Ils facilitent la conformité au Chrome Web Store mais ne constituent pas un avis juridique. L’éditeur reste responsable des informations déclarées et des obligations applicables dans les pays de distribution.

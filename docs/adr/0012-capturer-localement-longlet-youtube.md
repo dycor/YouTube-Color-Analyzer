@@ -2,7 +2,7 @@
 
 - Statut : accepté
 - Date : 2026-07-15
-- Dernière mise à jour : 2026-07-22
+- Dernière mise à jour : 2026-07-31
 
 ## Contexte
 
@@ -19,11 +19,11 @@ La première version requiert Google Chrome 116 ou une version ultérieure et ut
 3. un script de contenu communique la position et les dimensions visibles du lecteur YouTube ;
 4. un document hors écran recadre le flux sur cette zone et échantillonne les images de mesure au maximum à 15 Hz ;
 5. le document calcule les données des instruments localement ;
-6. seules les données de scopes sont transmises au panneau latéral pour affichage.
+6. les données de scopes sont transmises au panneau latéral et, si elle est ouverte, à la fenêtre d’analyse détachable pour affichage.
 
-Avant ce consentement, le script de contenu n'observe ni l'adresse, ni le lecteur, ni la géométrie de la page. Les images brutes ne sont jamais enregistrées, exportées, envoyées vers un serveur ou transmises au panneau latéral.
+Avant ce consentement, le script de contenu n'observe ni l'adresse, ni le lecteur, ni la géométrie de la page. Les images brutes ne sont jamais enregistrées automatiquement ni envoyées vers un serveur. Sur une image détaillée en pause, l’utilisateur peut demander explicitement l’export PNG local de l’image exacte analysée ; le document hors écran crée alors un téléchargement local pour l’interface demandeuse, sans upload ni historique d’export.
 
-La session et ses pistes de capture sont arrêtées lorsque le panneau ferme, lorsque l'utilisateur quitte YouTube ou lorsque l'onglet capturé est fermé.
+Le panneau latéral et la fenêtre détachable partagent une seule session. Ses pistes de capture sont arrêtées lorsque la dernière interface ferme après le délai de grâce, lorsque l’utilisateur choisit `Arrêter`, lorsqu'il quitte YouTube ou lorsque l'onglet capturé est fermé. `Arrêter` agit globalement sur toutes les interfaces.
 
 Les commandes YouTube et les sous-titres appartiennent au rendu visible capturé. Pour éviter qu'ils contaminent les mesures :
 
@@ -35,8 +35,8 @@ Les commandes YouTube et les sous-titres appartiennent au rendu visible capturé
 
 - Le manifeste doit demander uniquement `tabCapture`, `offscreen`, `sidePanel` et `storage`, ainsi qu'un accès hôte limité à YouTube. `activeTab` n'est pas requis par cette architecture.
 - Le recadrage doit convertir correctement les coordonnées CSS du lecteur vers les dimensions réelles du flux capturé, y compris après redimensionnement ou passage en mode cinéma.
-- Le panneau ne doit recevoir que des tableaux de densité, des réglages et des états de session.
-- Une déconnexion du panneau ou une navigation doit libérer le flux et les ressources de calcul ; le canvas est ramené à une surface de 1 × 1 à l'arrêt pour effacer le dernier recadrage.
+- En fonctionnement normal, les interfaces ne doivent recevoir que des tableaux de densité, des réglages et des états de session. L’unique exception est le téléchargement local demandé explicitement depuis une image détaillée en pause.
+- La déconnexion de la dernière interface ou une navigation doit libérer le flux et les ressources de calcul ; le canvas est ramené à une surface de 1 × 1 à l'arrêt pour effacer le dernier recadrage.
 - Les superpositions intégrées directement à l'image par l'auteur de la vidéo restent naturellement incluses dans les mesures.
 
 ## Sources

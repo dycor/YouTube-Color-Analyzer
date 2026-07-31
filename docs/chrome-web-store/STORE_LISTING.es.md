@@ -16,11 +16,11 @@
 
 Coloca este texto cerca del principio de la descripción, sin ocultarlo en una sección secundaria:
 
-> **Tratamiento de datos:** solo después de que aceptes la divulgación vigente en la extensión e inicies explícitamente el análisis, esta lee localmente la dirección de la página de YouTube, el identificador del vídeo y el estado del reproductor necesarios para detectar y encuadrar un vídeo compatible. Este contexto se observa únicamente durante la sesión de análisis activa. La extensión captura temporalmente la salida visual de la pestaña activa, sin audio, y recorta el área del vídeo para calcular los instrumentos. Seleccionar «Detener», cerrar el panel lateral, navegar a otra página o el fin de la captura detienen de inmediato tanto la observación del contexto como la captura. Los píxeles, la dirección de la página y el estado de reproducción permanecen en tu navegador. Ninguna imagen ni dato de reproducción se envía a un servidor, al editor o a terceros. Las preferencias de visualización y la versión del consentimiento se guardan en el almacenamiento local de Chrome. Un identificador de captura y el último estado técnico se conservan temporalmente en el almacenamiento de sesión y desaparecen, como máximo, al finalizar la sesión del navegador.
+> **Tratamiento de datos:** solo después de que aceptes la divulgación vigente en la extensión e inicies explícitamente el análisis, esta lee localmente la dirección de la página de YouTube, el identificador del vídeo y el estado del reproductor necesarios para detectar y encuadrar un vídeo compatible. Este contexto se observa únicamente durante la sesión de análisis activa compartida por el panel lateral y la ventana separada. La extensión captura temporalmente la salida visual de la pestaña activa, sin audio, y recorta el área del vídeo para calcular los instrumentos. Seleccionar «Detener» desde cualquiera de las interfaces, navegar a otra página o el fin de la captura detienen de inmediato tanto la observación del contexto como la captura; cerrar la última interfaz activa la misma detención tras un breve periodo de gracia para recargas. Los píxeles, la dirección de la página y el estado de reproducción permanecen en tu navegador. Ninguna imagen ni dato de reproducción se envía a un servidor, al editor o a terceros. Ninguna imagen se guarda automáticamente; solo se crea un PNG local del fotograma detallado exacto en pausa cuando eliges explícitamente Exportar imagen. Las preferencias de visualización y la versión del consentimiento se guardan en el almacenamiento local de Chrome. Un identificador de captura y el último estado técnico se conservan temporalmente en el almacenamiento de sesión y desaparecen, como máximo, al finalizar la sesión del navegador.
 
 ## Descripción detallada
 
-Color Analyzer for YouTube muestra instrumentos colorimétricos en el panel lateral de Chrome a partir de los píxeles visibles del vídeo que se está reproduciendo.
+Color Analyzer for YouTube muestra instrumentos colorimétricos en el panel lateral de Chrome o en una ventana de análisis desacoplable a partir de los píxeles visibles del vídeo que se está reproduciendo.
 
 Está diseñado para editores, coloristas y creadores que quieran estudiar un vídeo de referencia antes de recrear una estética similar en su propio proyecto.
 
@@ -28,7 +28,7 @@ TRATAMIENTO DE DATOS
 
 Solo después de que aceptes la divulgación vigente en la extensión e inicies explícitamente el análisis, esta lee localmente la dirección de la página de YouTube, el identificador del vídeo y el estado del reproductor necesarios para detectar y encuadrar un vídeo compatible. Este contexto se observa únicamente durante la sesión de análisis activa. La extensión captura temporalmente la salida visual de la pestaña activa, sin audio, y recorta el área del vídeo para calcular los instrumentos.
 
-Seleccionar «Detener», cerrar el panel lateral, navegar a otra página o el fin de la captura detienen de inmediato tanto la observación del contexto como la captura. Los píxeles, la dirección de la página y el estado de reproducción permanecen en tu navegador. Ninguna imagen ni dato de reproducción se envía a un servidor, al editor o a terceros. Las preferencias de visualización y la versión del consentimiento se guardan en el almacenamiento local de Chrome. Un identificador de captura y el último estado técnico se conservan temporalmente en el almacenamiento de sesión y desaparecen, como máximo, al finalizar la sesión del navegador.
+Seleccionar «Detener» desde cualquiera de las interfaces, navegar a otra página o el fin de la captura detienen de inmediato tanto la observación del contexto como la captura. El panel lateral y la ventana separada comparten una sesión; cerrar la última interfaz activa la misma detención tras un breve periodo de gracia para recargas. Los píxeles, la dirección de la página y el estado de reproducción permanecen en tu navegador. Ninguna imagen ni dato de reproducción se envía a un servidor, al editor o a terceros. Ninguna imagen se guarda automáticamente; solo se crea un PNG local del fotograma detallado exacto en pausa cuando eliges explícitamente Exportar imagen. Las preferencias de visualización y la versión del consentimiento se guardan en el almacenamiento local de Chrome. Un identificador de captura y el último estado técnico se conservan temporalmente en el almacenamiento de sesión y desaparecen, como máximo, al finalizar la sesión del navegador.
 
 INSTRUMENTOS INCLUIDOS
 
@@ -38,13 +38,13 @@ INSTRUMENTOS INCLUIDOS
 
 CÓMO FUNCIONA
 
-Abre una página estándar de visualización de YouTube, haz clic en el icono de la extensión y acepta la divulgación que aparece durante el primer uso. El panel lateral se abre y comienza a analizar el vídeo visible de la pestaña seleccionada.
+Abre una página estándar de visualización de YouTube, haz clic en el icono de la extensión y acepta la divulgación que aparece durante el primer uso. El panel lateral se abre y comienza a analizar el vídeo visible de la pestaña seleccionada. Después puedes abrir una ventana separada sin iniciar una segunda captura.
 
-Durante la reproducción, los instrumentos se actualizan en directo. Cuando el vídeo está en pausa, se analiza una imagen más detallada. Los tres instrumentos se calculan a partir de la misma imagen. El panel lateral no cubre el vídeo y los ajustes seleccionados se guardan localmente.
+Durante la reproducción, los instrumentos se actualizan en directo con hasta 512 columnas horizontales. Cuando el vídeo está en pausa, la imagen detallada utiliza hasta 1920 columnas. Los tres instrumentos se calculan a partir de la misma imagen. Puedes ajustar la intensidad de la traza, consultar los valores RGB mínimos/máximos y exportar explícitamente el fotograma detallado exacto en pausa como PNG local. Los ajustes seleccionados se guardan localmente.
 
 PRIVACIDAD
 
-Todos los cálculos se realizan en el dispositivo. Los píxeles del vídeo permanecen únicamente en la memoria de trabajo local durante la sesión de análisis activa. Cuando se detiene el análisis, se libera la fuente de vídeo y el lienzo se restablece a 1 × 1 píxel. Ninguna imagen se almacena de forma persistente, se exporta ni se envía a un servidor. La extensión no tiene backend, publicidad ni análisis de audiencia, y no captura el audio.
+Todos los cálculos se realizan en el dispositivo. Los píxeles del vídeo permanecen en la memoria de trabajo local durante la sesión de análisis activa. Cuando se detiene el análisis, se libera la fuente de vídeo y el lienzo se restablece a 1 × 1 píxel. Ninguna imagen se guarda automáticamente ni se envía a un servidor. Solo se escribe un PNG en el dispositivo después de que el usuario elija explícitamente Exportar imagen en una medición detallada en pausa; la extensión no conserva ningún historial de exportación. No tiene backend, publicidad ni análisis de audiencia, y no captura el audio.
 
 COMPATIBILIDAD
 
@@ -53,7 +53,7 @@ COMPATIBILIDAD
 • Modos normal y cine del reproductor.  
 • Interfaz disponible en español, inglés, francés, chino y portugués.
 
-LIMITACIONES DE LA VERSIÓN 1
+CAPACIDADES Y LIMITACIONES DE LA VERSIÓN 1.1
 
 La extensión analiza la salida SDR renderizada por Chrome, no el archivo de vídeo original ni la señal de origen. Por tanto, los valores normalizados de 0 a 100 no constituyen mediciones broadcast calibradas.
 
@@ -70,15 +70,15 @@ Esta es una extensión independiente. No está afiliada, patrocinada, respaldada
 ## Textos sugeridos para las capturas de pantalla
 
 1. **Tres instrumentos colorimétricos directamente en Chrome**  
-   Parade YRGB/RGB, Forma de onda y Vectorscopio en un panel lateral dedicado.
+   Parade YRGB/RGB, Forma de onda y Vectorscopio en el panel lateral o en una ventana separada.
 2. **Análisis en directo durante la reproducción**  
    Sigue la luminancia, los canales RGB y la saturación a medida que avanza el vídeo.
-3. **Una imagen más detallada al pausar**  
-   Congela una referencia y examina su distribución colorimétrica con más precisión.
+3. **Una imagen detallada y exportable al pausar**
+   Examina hasta 1920 columnas horizontales y guarda explícitamente el fotograma exacto analizado como PNG local.
 4. **Controles familiares para coloristas**  
-   Canales YRGB, visualización en color o monocromática y una línea de referencia opcional para los tonos de piel.
+   Canales YRGB, intensidad de traza, valores RGB mínimos/máximos, visualización en color o monocromática y una línea de referencia opcional para los tonos de piel.
 5. **Tratamiento local y no destructivo**  
-   Ninguna imagen se sube ni se guarda de forma persistente, y el vídeo nunca se modifica.
+   Ninguna imagen se sube ni se guarda automáticamente, y el vídeo nunca se modifica.
 
 ## Texto para la imagen promocional de 440 × 280
 

@@ -21,7 +21,11 @@ async function listFiles(directory, prefix = '') {
   return files
 }
 
-await access(resolve(outputDirectory, 'manifest.json'))
+await Promise.all([
+  access(resolve(outputDirectory, 'manifest.json')),
+  access(resolve(outputDirectory, 'sidepanel.html')),
+  access(resolve(outputDirectory, 'scope-window.html')),
+])
 
 const files = await listFiles(outputDirectory)
 const forbidden = files.filter(

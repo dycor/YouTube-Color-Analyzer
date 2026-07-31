@@ -1,9 +1,10 @@
 export type ScopeKind = 'parade' | 'waveform' | 'vectorscope'
 export type ParadeMode = 'yrgb' | 'rgb'
 export type Channel = 'y' | 'r' | 'g' | 'b'
+export type AnalysisSurface = 'sidepanel' | 'window'
 
 export const PRIVACY_CONSENT_KEY = 'privacyConsentVersion'
-export const PRIVACY_CONSENT_VERSION = 1
+export const PRIVACY_CONSENT_VERSION = 2
 
 export function hasCurrentPrivacyConsent(value: unknown): boolean {
   return value === PRIVACY_CONSENT_VERSION
@@ -17,6 +18,7 @@ export interface PanelSettings {
   waveformChannels: Record<Channel, boolean>
   waveformColorized: boolean
   showSkinToneLine: boolean
+  traceIntensity: number
 }
 
 export const DEFAULT_PANEL_SETTINGS: PanelSettings = {
@@ -30,6 +32,7 @@ export const DEFAULT_PANEL_SETTINGS: PanelSettings = {
   },
   waveformColorized: true,
   showSkinToneLine: true,
+  traceIntensity: 40,
 }
 
 export interface ViewportSize {
@@ -164,6 +167,8 @@ export interface ScopeFrame {
   vectorSize: number
   sampleCount: number
   computeMs: number
+  channelMin: readonly [number, number, number]
+  channelMax: readonly [number, number, number]
   channelDensity: Uint32Array
   vectorDensity: Uint32Array
 }
@@ -193,6 +198,40 @@ export interface SessionStateMessage {
   state: SessionState
 }
 
+export interface FrameExportRequestMessage {
+  type: 'frame-export:request'
+  target: 'offscreen'
+  requestId: string
+  sessionId: string
+  frameId: number
+}
+
+export interface FrameExportReadyMessage {
+  type: 'frame-export:ready'
+  target: 'service-worker'
+  requestId: string
+  sessionId: string
+  frameId: number
+  objectUrl: string
+  fileName: string
+}
+
+export interface FrameExportErrorMessage {
+  type: 'frame-export:error'
+  target: 'service-worker'
+  requestId: string
+  sessionId: string
+  reason: 'unavailable' | 'busy' | 'encoding_failed'
+}
+
+export interface FrameExportReleaseMessage {
+  type: 'frame-export:release'
+  target: 'offscreen'
+  requestId: string
+  sessionId: string
+  objectUrl: string
+}
+
 export type RuntimeMessage =
   | CaptureStartMessage
   | CaptureStopMessage
@@ -204,6 +243,10 @@ export type RuntimeMessage =
   | PlayerObservationReadyMessage
   | AnalysisFrameMessage
   | SessionStateMessage
+  | FrameExportRequestMessage
+  | FrameExportReadyMessage
+  | FrameExportErrorMessage
+  | FrameExportReleaseMessage
 
 export interface AnalyzeFrameRequest {
   type: 'analyze:frame'
@@ -223,7 +266,26 @@ export interface AnalyzeFrameResponse {
 }
 
 export type PanelPortMessage =
-  | { type: 'panel:ready' }
+  | { type: 'panel:ready'; surface: AnalysisSurface }
   | { type: 'panel:stop' }
   | { type: 'panel:accept-and-start' }
   | { type: 'panel:cancel-consent' }
+  | { type: 'panel:open-window' }
+  | { type: 'panel:export-frame'; requestId: string; frameId: number }
+  | {
+      type: 'panel:export-ready'
+      requestId: string
+      frameId: number
+      objectUrl: string
+      fileName: string
+    }
+  | {
+      type: 'panel:export-error'
+      requestId: string
+      reason: 'unavailable' | 'busy' | 'encoding_failed'
+    }
+  | {
+      type: 'panel:export-release'
+      requestId: string
+      objectUrl: string
+    }

@@ -15,6 +15,8 @@ function scopeFrame(): ScopeFrame {
     vectorSize: 2,
     sampleCount: 4,
     computeMs: 4.2,
+    channelMin: [0, 0, 0],
+    channelMax: [255, 255, 255],
     channelDensity: new Uint32Array([
       0, 1, 4, 16,
       0, 0, 0, 0,
@@ -38,6 +40,8 @@ describe('scope frame transport', () => {
     expect(decoded.channelIntensity[0]).toBe(0)
     expect(Math.max(...decoded.channelIntensity)).toBe(255)
     expect(decoded.vectorIntensity[3]).toBe(255)
+    expect(decoded.channelMin).toEqual([0, 0, 0])
+    expect(decoded.channelMax).toEqual([255, 255, 255])
   })
 
   it('rejects incomplete frame payloads', () => {

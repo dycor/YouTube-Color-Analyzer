@@ -104,6 +104,8 @@ export function encodeScopeFrame(frame: ScopeFrame): EncodedScopeFrame {
     vectorSize: frame.vectorSize,
     sampleCount: frame.sampleCount,
     computeMs: frame.computeMs,
+    channelMin: frame.channelMin,
+    channelMax: frame.channelMax,
     channelIntensityBase64: bytesToBase64(
       normalizeWaveformDensity(
         frame.channelDensity,
@@ -141,6 +143,8 @@ export function decodeScopeFrame(frame: EncodedScopeFrame): DisplayScopeFrame {
     vectorSize: frame.vectorSize,
     sampleCount: frame.sampleCount,
     computeMs: frame.computeMs,
+    channelMin: frame.channelMin,
+    channelMax: frame.channelMax,
     channelIntensity,
     vectorIntensity,
   }

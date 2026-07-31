@@ -19,6 +19,10 @@ import type {
   AnalyzeFrameResponse,
   CaptureEndedMessage,
   CaptureStartMessage,
+  FrameExportErrorMessage,
+  FrameExportReadyMessage,
+  FrameExportReleaseMessage,
+  FrameExportRequestMessage,
   PanelFrameRequestMessage,
   PlayerSnapshot,
   PlayerSnapshotMessage,
@@ -32,6 +36,10 @@ import {
   releaseAnalysisCanvas,
   releaseCaptureVideo,
 } from './release-surfaces'
+import {
+  canExportAnalyzedFrame,
+  frameExportFileName,
+} from './frame-export'
 
 const captureVideo = document.createElement('video')
 const analysisCanvas = new OffscreenCanvas(1, 1)
@@ -52,6 +60,20 @@ let lastAnalysisAt = 0
 let minimumIntervalMs = 1000 / MAX_ANALYSIS_HZ
 let lastStateSignature = ''
 let lastFrameMessage: AnalysisFrameMessage | null = null
+let analysisCanvasFrameId: number | null = null
+let analysisCanvasSessionId: string | null = null
+let analysisCanvasDetailed = false
+let frameExportInFlight = false
+
+const FRAME_EXPORT_TTL_MS = 60_000
+
+interface ExportedObjectUrl {
+  sessionId: string
+  objectUrl: string
+  timeout: ReturnType<typeof globalThis.setTimeout>
+}
+
+const exportedObjectUrls = new Map<string, ExportedObjectUrl>()
 
 type LocalSessionState = Omit<SessionState, 'sessionId'>
 
@@ -107,6 +129,18 @@ async function publishState(state: LocalSessionState): Promise<void> {
   await chrome.runtime.sendMessage(message).catch(() => undefined)
 }
 
+function revokeExportedObjectUrl(requestId: string): void {
+  const exported = exportedObjectUrls.get(requestId)
+
+  if (!exported) {
+    return
+  }
+
+  globalThis.clearTimeout(exported.timeout)
+  URL.revokeObjectURL(exported.objectUrl)
+  exportedObjectUrls.delete(requestId)
+}
+
 function stopTracks(): void {
   liveAnalysisScheduler.stop()
   analysisRequests.stopSession()
@@ -125,6 +159,10 @@ function stopTracks(): void {
   pendingDetailedFrame = false
   playerSnapshot = null
   lastFrameMessage = null
+  analysisCanvasFrameId = null
+  analysisCanvasSessionId = null
+  analysisCanvasDetailed = false
+  frameExportInFlight = false
   detailedAnalysisGate.reset()
 }
 
@@ -288,7 +326,14 @@ function analyzeCurrentFrame(detailed: boolean): boolean {
     }
 
     frameId = nextFrameId
-    lastAnalysisAt = now
+    analysisCanvasFrameId = nextFrameId
+    analysisCanvasSessionId = ticket.sessionId
+    analysisCanvasDetailed = detailed
+
+    if (!detailed) {
+      lastAnalysisAt = now
+    }
+
     ensureAnalyzerWorker().postMessage(request, [rgba])
     return true
   } catch (error) {
@@ -440,12 +485,25 @@ function handleAnalyzerMessage(
     return
   }
 
-  minimumIntervalMs = Math.max(
-    1000 / MAX_ANALYSIS_HZ,
-    response.frame.computeMs > TARGET_COMPUTE_MS
-      ? response.frame.computeMs * 1.25
-      : 1000 / MAX_ANALYSIS_HZ,
-  )
+  if (!response.frame.detailed) {
+    minimumIntervalMs = Math.max(
+      1000 / MAX_ANALYSIS_HZ,
+      response.frame.computeMs > TARGET_COMPUTE_MS
+        ? response.frame.computeMs * 1.25
+        : 1000 / MAX_ANALYSIS_HZ,
+    )
+  }
+
+  if (response.frame.detailed && playerSnapshot?.playback !== 'paused') {
+    pendingDetailedFrame = false
+
+    if (lastFrameMessage?.frame.detailed) {
+      lastFrameMessage = null
+    }
+
+    analyzeCurrentFrame(false)
+    return
+  }
 
   const message: AnalysisFrameMessage = {
     type: 'analysis:frame',
@@ -458,7 +516,7 @@ function handleAnalyzerMessage(
 
   if (pendingDetailedFrame) {
     pendingDetailedFrame = false
-    analyzeCurrentFrame(true)
+    analyzeCurrentFrame(playerSnapshot?.playback === 'paused')
   }
 }
 
@@ -497,6 +555,113 @@ function replayCurrentFrame(message: PanelFrameRequestMessage): void {
   }
 }
 
+function frameExportIsAvailable(message: FrameExportRequestMessage): boolean {
+  return canExportAnalyzedFrame(
+    message,
+    analysisRequests.sessionId,
+    playerSnapshot !== null &&
+      sessionStateForSnapshot(playerSnapshot).status === 'paused',
+    lastFrameMessage
+      ? {
+          sessionId: lastFrameMessage.sessionId,
+          frameId: lastFrameMessage.frame.frameId,
+          detailed: lastFrameMessage.frame.detailed,
+        }
+      : null,
+    analysisCanvasFrameId === null || analysisCanvasSessionId === null
+      ? null
+      : {
+          sessionId: analysisCanvasSessionId,
+          frameId: analysisCanvasFrameId,
+          detailed: analysisCanvasDetailed,
+        },
+  )
+}
+
+async function publishFrameExportError(
+  message: FrameExportRequestMessage,
+  reason: FrameExportErrorMessage['reason'],
+): Promise<void> {
+  const response: FrameExportErrorMessage = {
+    type: 'frame-export:error',
+    target: 'service-worker',
+    requestId: message.requestId,
+    sessionId: message.sessionId,
+    reason,
+  }
+  await chrome.runtime.sendMessage(response).catch(() => undefined)
+}
+
+async function exportAnalyzedFrame(
+  message: FrameExportRequestMessage,
+): Promise<void> {
+  if (!frameExportIsAvailable(message)) {
+    await publishFrameExportError(message, 'unavailable')
+    return
+  }
+
+  if (frameExportInFlight) {
+    await publishFrameExportError(message, 'busy')
+    return
+  }
+
+  frameExportInFlight = true
+
+  try {
+    const blob = await analysisCanvas.convertToBlob({ type: 'image/png' })
+
+    if (!frameExportIsAvailable(message)) {
+      await publishFrameExportError(message, 'unavailable')
+      return
+    }
+
+    revokeExportedObjectUrl(message.requestId)
+    const objectUrl = URL.createObjectURL(blob)
+    const timeout = globalThis.setTimeout(
+      () => revokeExportedObjectUrl(message.requestId),
+      FRAME_EXPORT_TTL_MS,
+    )
+    exportedObjectUrls.set(message.requestId, {
+      sessionId: message.sessionId,
+      objectUrl,
+      timeout,
+    })
+
+    const response: FrameExportReadyMessage = {
+      type: 'frame-export:ready',
+      target: 'service-worker',
+      requestId: message.requestId,
+      sessionId: message.sessionId,
+      frameId: message.frameId,
+      objectUrl,
+      fileName: frameExportFileName(
+        message.frameId,
+        analysisCanvas.width,
+        analysisCanvas.height,
+      ),
+    }
+    await chrome.runtime.sendMessage(response).catch(() => {
+      revokeExportedObjectUrl(message.requestId)
+    })
+  } catch (error) {
+    console.error('Unable to export the analyzed frame.', error)
+    await publishFrameExportError(message, 'encoding_failed')
+  } finally {
+    frameExportInFlight = false
+  }
+}
+
+function releaseExportedFrame(message: FrameExportReleaseMessage): void {
+  const exported = exportedObjectUrls.get(message.requestId)
+
+  if (
+    exported?.sessionId === message.sessionId &&
+    exported.objectUrl === message.objectUrl
+  ) {
+    revokeExportedObjectUrl(message.requestId)
+  }
+}
+
 chrome.runtime.onMessage.addListener(
   (message: RuntimeMessage, sender: chrome.runtime.MessageSender) => {
     if (message.type === 'capture:start') {
@@ -519,12 +684,23 @@ chrome.runtime.onMessage.addListener(
       return
     }
 
+    if (message.type === 'frame-export:request') {
+      void exportAnalyzedFrame(message)
+      return
+    }
+
+    if (message.type === 'frame-export:release') {
+      releaseExportedFrame(message)
+      return
+    }
+
     if (
       message.type === 'player:snapshot' &&
       message.sessionId === analysisRequests.sessionId &&
       sender.tab?.id === activeTabId
     ) {
       const snapshotMessage: PlayerSnapshotMessage = message
+      const previousPlayback = playerSnapshot?.playback
       playerSnapshot = snapshotMessage.snapshot
       void publishState(sessionStateForSnapshot(playerSnapshot))
 
@@ -534,6 +710,14 @@ chrome.runtime.onMessage.addListener(
           () => analyzeCurrentFrame(true),
         )
       } else if (playerSnapshot.playback === 'playing') {
+        if (previousPlayback !== 'playing') {
+          lastAnalysisAt = 0
+
+          if (lastFrameMessage?.frame.detailed) {
+            lastFrameMessage = null
+          }
+        }
+
         detailedAnalysisGate.reset()
         analyzeCurrentFrame(false)
       }

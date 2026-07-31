@@ -8,16 +8,18 @@ Extensão para Google Chrome que analisa localmente os pixels visíveis de um v�
 - Waveform com canais `Y`, `R`, `G`, `B` e modo colorido ou monocromático;
 - Vetorscópio Rec.709 com referências de matiz e linha de tons de pele.
 
-A extensão observa a imagem sem modificar o vídeo, seu arquivo-fonte ou sua renderização. Ela não possui backend, não armazena nenhuma imagem e não envia nenhum dado pela Internet.
+A extensão observa a imagem sem modificar o vídeo, seu arquivo-fonte ou sua renderização. Ela não possui backend nem envia dados pela Internet. Nunca salva imagens automaticamente; em um quadro detalhado com o vídeo pausado, o usuário pode exportar explicitamente a imagem exata analisada como um PNG local.
 
 A interface acompanha automaticamente o idioma do navegador. Ela oferece suporte a francês, inglês, chinês, espanhol e português; qualquer outro idioma utiliza o inglês.
 
 ## Estado do projeto
 
-A base funcional inclui:
+A versão 1.1.0 inclui:
 
 - um manifesto Chrome MV3 para Chrome 116 ou versão posterior;
-- um painel lateral com os três instrumentos e seus ajustes;
+- um painel lateral e uma janela de análise destacável que compartilham a mesma sessão de captura;
+- análise ao vivo com até 512 colunas horizontais e análise detalhada em pausa com até 1920 colunas;
+- controle de intensidade do traço, valores RGB mínimos/máximos e exportação PNG local explícita do quadro detalhado em pausa;
 - um pipeline local `tabCapture` → documento fora da tela → Web Worker → painel;
 - um núcleo colorimétrico TypeScript independente das APIs do Chrome;
 - testes unitários, de desempenho e de carregamento no Chromium.
@@ -58,6 +60,7 @@ Para pré-visualizar apenas a interface com dados sintéticos, execute `pnpm ui:
 5. Selecione o diretório `dist/`.
 6. Abra uma página `https://www.youtube.com/watch?...`.
 7. Clique no ícone, leia a divulgação do primeiro uso e aceite-a explicitamente para iniciar a análise.
+8. Opcionalmente, selecione “Abrir em uma janela” para a visualização destacável. Pause o vídeo para ativar a medição detalhada e a exportação PNG explícita.
 
 ## Arquitetura
 
@@ -72,7 +75,7 @@ src/
 └── sidepanel/        interface e renderização Canvas 2D
 ```
 
-As imagens RGBA permanecem no documento fora da tela e no worker de cálculo. O painel recebe somente mapas de intensidade compactos necessários para desenhar os scopes.
+As imagens RGBA permanecem no documento fora da tela e no worker de cálculo. O painel lateral e a janela destacável recebem somente os mapas de intensidade compactos necessários para desenhar os scopes. O quadro detalhado exato só é disponibilizado à interface quando o usuário solicita explicitamente uma exportação PNG local; ele nunca é salvo nem enviado automaticamente.
 
 ## Documentação de design
 

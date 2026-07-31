@@ -7,10 +7,12 @@
     <script>
       (() => {
         const parameters = new URLSearchParams(window.location.search)
+        document.documentElement.dataset.view =
+          parameters.get('view') === 'window' ? 'window' : 'sidepanel'
         const detailed = parameters.get('detailed') === 'true'
         const sourceWidth = detailed ? 1920 : 640
         const sourceHeight = detailed ? 1080 : 360
-        const xBins = detailed ? 1024 : 512
+        const xBins = detailed ? 1920 : 512
         const levelBins = 256
         const vectorSize = 256
         const channelIntensity = new Uint8Array(4 * xBins * levelBins)
@@ -141,6 +143,8 @@
           vectorSize,
           sampleCount: sourceWidth * sourceHeight,
           computeMs: detailed ? 41.7 : 18.4,
+          channelMin: [0, 0, 0],
+          channelMax: [255, 255, 255],
           channelIntensityBase64: encode(channelIntensity),
           vectorIntensityBase64: encode(vectorIntensity),
         }
@@ -158,11 +162,12 @@
             waveformChannels: { y: false, r: true, g: true, b: true },
             waveformColorized: true,
             showSkinToneLine: true,
+            traceIntensity: 40,
           },
         }
 
         if (parameters.get('consent') !== 'pending') {
-          stored.privacyConsentVersion = 1
+          stored.privacyConsentVersion = 2
         }
 
         window.chrome = {
@@ -200,6 +205,7 @@
             },
           },
           storage: {
+            onChanged: { addListener: () => undefined },
             local: {
               get: async () => stored,
               set: async (value) => Object.assign(stored, value),
